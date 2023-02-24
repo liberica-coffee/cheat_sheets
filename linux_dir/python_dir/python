@@ -1,0 +1,14 @@
+dir()
+
+### 调试
+import pdb 
+pdb.set_trace()
+
+### 列表
+list=[]
+list.count(False) 
+    存在： > 0
+    不存在: = 0
+
+
+
