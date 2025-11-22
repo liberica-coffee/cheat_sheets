@@ -1,0 +1,16 @@
+##  设置1
+
+在iTerm2中，使用鼠标中键粘贴内容时，默认情况下粘贴操作会成功执行，但不会自动获得输入焦点‌。
+若需实现粘贴后自动聚焦，需在设置中启用‌"Focus window after right or middle click"‌选项‌
+
+‌操作步骤‌：
+
+打开iTerm2偏好设置 → 进入‌Pointer‌选项卡。
+勾选‌"Focus window after right or middle click"‌。
+此后中键粘贴时，当前窗口将自动获得焦点。
+‌注意‌：若未启用该选项，粘贴后需手动点击窗口以激活输入焦点‌。
+
+## 
+
+
+
