@@ -1,0 +1,13 @@
+set number
+set tabstop=4
+set ruler
+set hlsearch
+set cursorline
+
+
+set background=dark
+set termguicolors
+colorscheme desert
+
+syntax on
+
