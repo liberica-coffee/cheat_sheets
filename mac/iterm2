@@ -15,60 +15,31 @@
 ##################################################################################
 ## iterm2 光标最前端和最后面移动，可以设置快捷键吗( 移动到行首 HOME，移动到行尾 END）
 
-方法二：手动配置键位
-如果预设不满足需求，可以手动添加：
 
-打开iTerm2偏好设置（⌘ + ,）
-选择"Keys"标签页
-点击"+"按钮添加新键位
-
-设置行首跳转：
-Keyboard Shortcut: ⌘ + ←
-Action: Send Hex Code
-Hex Code: 0x01
-Apply to all sessions in window
+### この方法は　有効です。
+Iterm2 -> Settings -> Profiles -> Keys -> Key behavior:
+check 「Page up, page down, home, and end scroll outside interacive apps」
 
 
-设置行尾跳转：
-Keyboard Shortcut: ⌘ + →
-Action: Send Hex Code
-Hex Code: 0x05
-Apply to all sessions in window
+### もしダメだったら、下記の方法で
 
+🛠 設定方法（iTerm2推奨）
+1. iTerm2のキー設定を開く
+⌘ + , → Preferences
 
+Profiles → Keys タブ
 
+2. 各キーを追加して再マッピング
+以下のように設定すると Windows と同じ動作になります：
 
-
-PgUp
-
-0x21
-The hex code for the "PgUp" (Page Up) key is typically 0x21 in ASCII. This code is used to scroll up one page in most applications and text editors. 
-
-PgDn
-
-0x22
-PgDnのHEXコードは0x22です。 これは、Page Downキーが押されたときに送信される信号の16進数値です。 
-
-
-Insert
-
-0x94
-The hex code for the Insert key on a keyboard can vary depending on the keyboard layout and the operating system.
-For example, in the OADG109A keyboard, the Insert key corresponds to Usage ID 0x94.
-
-
-Delete
-
-0x7F
-The hexadecimal code for the delete key on a keyboard is 0x7F. This code is used in various computing contexts to indicate the deletion of characters or data.
-
-
-半角・全角漢字
-
-
-
-
-
+キー	Action	設定内容
+Insert	Send Escape Sequence	\033[2~
+Delete	Send Escape Sequence	\033[3~
+Home	Send Escape Sequence	\033[H
+End	Send Escape Sequence	\033[F
+PageUp	Send Escape Sequence	\033[5~
+PageDown	Send Escape Sequence	\033[6~
+👉 これらは Windowsの標準ターミナルキーコード に対応しています。
 
 
 参考URL：
