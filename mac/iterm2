@@ -33,7 +33,48 @@ Apply to all sessions in window
 Keyboard Shortcut: ⌘ + →
 Action: Send Hex Code
 Hex Code: 0x05
-Apply to all sessions in window‌
+Apply to all sessions in window
+
+
+
+
+
+PgUp
+
+0x21
+The hex code for the "PgUp" (Page Up) key is typically 0x21 in ASCII. This code is used to scroll up one page in most applications and text editors. 
+
+PgDn
+
+0x22
+PgDnのHEXコードは0x22です。 これは、Page Downキーが押されたときに送信される信号の16進数値です。 
+
+
+Insert
+
+0x94
+The hex code for the Insert key on a keyboard can vary depending on the keyboard layout and the operating system.
+For example, in the OADG109A keyboard, the Insert key corresponds to Usage ID 0x94.
+
+
+Delete
+
+0x7F
+The hexadecimal code for the delete key on a keyboard is 0x7F. This code is used in various computing contexts to indicate the deletion of characters or data.
+
+
+半角・全角漢字
+
+
+
+
+
+
+
+参考URL：
+https://bsakatu.net/doc/scancode/　
+
+‌
 ##################################################################################
 方法一：使用KeyCastr软件
 KeyCastr是一款免费开源工具，可以在屏幕上实时显示按键名称，适合录屏或教学场景。
