@@ -1,0 +1,19 @@
+## gradlew build 和 gradle build 的主要区别在于使用的 Gradle 版本来源。
+
+核心区别：‌
+
+gradlew build 使用项目自带的 ‌Gradle Wrapper‌（gradlew 脚本），确保所有开发者使用完全相同的 Gradle 版本
+gradle build 使用系统全局安装的 ‌Gradle‌ 版本，可能存在版本差异问题
+
+具体差异对比：‌
+
+命令	版本控制	适用场景	优势
+gradlew build	项目自带，版本固定	团队协作项目	避免版本冲突，构建结果一致
+gradle build	系统全局安装	个人项目或测试	无需下载 wrapper，直接使用
+
+gradlew 是项目中的脚本文件，首次运行时会自动下载项目指定的 Gradle 版本，确保构建环境统一。而 gradle 命令依赖于系统环境变量中配置的 Gradle 路径。
+
+建议优先使用 ./gradlew build‌，特别是团队项目中，它能有效避免因 Gradle 版本不同导致的构建失败问题。
+
+##--------------------------------------------------------------
+  
