@@ -1,1 +1,153 @@
-nsnsks
+在 Kotlin 中，有几种方法可以查看标准库的方法，虽然不像 Python 的 dir() 那么直接，但也很实用：
+
+1. IDE 智能提示（最常用）
+
+在 IntelliJ IDEA 或 Android Studio 中，直接使用 Ctrl + Space：
+
+```kotlin
+fun main() {
+    val str = "hello"
+    str. // 在这里按 Ctrl + Space，会显示所有可用方法
+}
+```
+
+2. 使用代码补全查看文档
+
+输入对象名后加 .，然后查看弹出的方法列表，每个方法都有文档提示。
+
+3. 在线文档
+
+访问官方文档查看完整的方法列表：
+
+· Kotlin 标准库文档
+
+4. 使用反射（最接近 dir() 的方法）
+
+```kotlin
+fun main() {
+    val str = "hello"
+    
+    // 查看所有公共方法（包括继承的）
+    str::class.members.forEach { 
+        println(it.name) 
+    }
+    
+    println("---")
+    
+    // 只查看声明的方法（不包括继承的）
+    str::class.declaredMembers.forEach { 
+        println(it.name) 
+    }
+    
+    println("---")
+    
+    // 更详细的查看，包括属性
+    str::class.members
+        .sortedBy { it.name }
+        .forEach { 
+            println("${it.name} - ${it.returnType}") 
+        }
+}
+```
+
+5. 按类别查看方法
+
+```kotlin
+fun exploreMethods() {
+    val list = listOf(1, 2, 3)
+    
+    // 查看 List 的方法
+    println("List methods:")
+    list::class.members
+        .map { it.name }
+        .distinct()
+        .sorted()
+        .forEach { println(it) }
+}
+```
+
+6. 使用 Kotlin REPL
+
+在终端运行 kotlinc 进入交互模式，然后使用 Tab 补全：
+
+```bash
+$ kotlinc
+Welcome to Kotlin
+Type :help for help, :quit for quit
+>>> "hello".[Tab]  # 按 Tab 键查看所有方法
+```
+
+7. 创建自定义的 dir 函数
+
+你可以创建一个类似 Python dir() 的工具函数：
+
+```kotlin
+fun dir(obj: Any): List<String> {
+    return obj::class.members
+        .map { it.name }
+        .distinct()
+        .sorted()
+}
+
+fun detailedDir(obj: Any) {
+    println("Methods and properties of ${obj::class.simpleName}:")
+    println("-".repeat(50))
+    
+    obj::class.members
+        .sortedBy { it.name }
+        .forEach { member ->
+            val type = when {
+                member.parameters.size == 1 -> "property"
+                else -> "method"
+            }
+            println("${member.name} ($type) - returns ${member.returnType}")
+        }
+}
+
+// 使用示例
+fun main() {
+    val str = "hello"
+    
+    println("Simple dir:")
+    dir(str).forEach { println(it) }
+    
+    println("\nDetailed dir:")
+    detailedDir(str)
+}
+```
+
+8. 查看特定包的内容
+
+```kotlin
+import kotlin.reflect.KClass
+
+fun explorePackage(pkg: String) {
+    try {
+        val classes = ClassLoader.getSystemClassLoader()
+            .loadClass(pkg)
+            .declaredClasses
+        classes.forEach { println(it.simpleName) }
+    } catch (e: Exception) {
+        println("无法加载包: $pkg")
+    }
+}
+
+// 使用示例
+fun main() {
+    // 查看 kotlin.collections 包中的内容
+    explorePackage("kotlin.collections")
+}
+```
+
+实用技巧总结
+
+1. 日常开发：使用 IDE 的 Ctrl + Space 最方便
+2. 学习探索：使用反射的 dir() 自定义函数
+3. 详细研究：查阅官方在线文档
+4. 快速测试：使用 Kotlin REPL
+
+对于大多数情况，IDE 的智能提示已经足够用了，但了解反射方法可以让你在需要时进行更深入的探索。
+
+https://devhints.io/kotlin
+
+
