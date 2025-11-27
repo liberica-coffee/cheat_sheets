@@ -1,4 +1,21 @@
 
+
+------------/
+
+# 生成复杂 JSON 请求体
+echo '{"user": {"name": "Alice", "age": 30}, "metadata": {"source": "test"}}' | jq -c .
+
+# 在 gRPCurl 中使用
+grpcurl -plaintext -proto ./test.proto -d "$(echo '{"user": {"name": "Alice", "age": 30}}' | jq -c .)" localhost:50051 TestService.TestMethod
+
+
+-------------
+
+
+
+
+
+
 // 简单的 Kotlin 脚本生成 gRPCurl 命令
 fun generateGrpcurlCommand(
     host: String,
