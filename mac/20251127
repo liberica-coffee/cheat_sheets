@@ -1,4 +1,33 @@
 
+// 简单的 Kotlin 脚本生成 gRPCurl 命令
+fun generateGrpcurlCommand(
+    host: String,
+    port: Int,
+    service: String,
+    method: String,
+    protoDir: String,
+    requestJson: String
+): String {
+    return "grpcurl -plaintext -proto ${protoDir} -d '${requestJson}' ${host}:${port} ${service}.${method}"
+}
+
+// 示例使用
+val command = generateGrpcurlCommand(
+    host = "localhost",
+    port = 50051,
+    service = "helloworld.Greeter",
+    method = "SayHello",
+    protoDir = "./proto/hello.proto",
+    requestJson = """{"name": "World"}"""
+)
+println(command)
+
+
+
+
+
+
+
 
 「Kotlin」の読み方は「コトリン」が一般的です。
 「Gradle」の読み方は「グレイドル」です。
