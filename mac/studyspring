@@ -1,1 +1,84 @@
-sdfsdf
+
+必要な知識
+JAVA 17
+spring
+springMVC
+MyBatis
+Gradle
+IDEA
+
+tomcat 
+servlet 
+
+---
+
+spring framework： spring mvc
+spring data： 数据库， mysql, redis 数据访问功能
+  spring data jdbc
+  spring data jpa
+  spring data ldap
+  spring data mongodb
+  spring data redis
+  spring data r2dbc
+  spring data rest
+  spring data for apache cassandra
+  spring data couchbase
+  spring data elasticsearch
+  spring data envers
+  spring data neo4j
+spring cloud： 分布式应用
+  spring cloud azure
+  spring cloud alibaba
+  spring cloud for amazon web services
+  spring cloud bus 
+  spring cloud circuit breaker
+  spring cloud cli
+  spring cloud commons
+  spring cloud config
+  spring cloud consul
+  spring cloud contract
+  spring cloud function
+  spring cloud gateway
+  spring cloud gcp
+  spring cloud kubernetes
+  spring cloud netflix
+  spring cloud open service broker
+  spring cloud oepnfeign
+  spring cloud sleuth
+  spring cloud stream
+  spring cloud stream applications
+  spring cloud stream task
+  spring cloud stream vault
+  spring cloud stream zookeeper
+  spring cloud stream app broker
+spring cloud data flow
+spring security：安全
+  spring security kerberos
+spring authorization server
+spring for graphQL
+spring session 
+  spring session for apache geode
+spring integration 
+spring hateoas
+spring modulith
+spring rest docs
+spring ai
+spring batch：批处理
+spring amqp：消息队列
+spring credhub
+spring flo
+spring for apache kafka 
+spring ldap 
+spring for apache pulsar
+spring shell 
+spring statemachine 
+spring vault 
+spring web flow 
+spring web services 
+
+
+
+
+
+
+
