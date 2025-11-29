@@ -65,6 +65,9 @@ brew install --cask keycastr
 ‌快捷键‌：按 Ctrl+Alt+Cmd+K 可快速开关显示。
 ##################################################################################
 
+向光标右侧删除
+The plain Delete key (forward delete) is usually mapped to the escape sequence \033[3~ 
+(hex: 0x1B 0x5B 0x33 0x7E).
 
 
 
