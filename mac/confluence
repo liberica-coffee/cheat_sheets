@@ -1,0 +1,9 @@
+是的，通过安装第三方应用（如“Render Markdown”）或使用 Confluence 内置的宏功能，Confluence 可以使用 Markdown 语法。这种方法允许用户在 Confluence 页面中编写和渲染 Markdown 文档，其中一些应用和宏还支持代码块语法高亮等功能。 
+方法一：使用宏
+安装宏：在 Confluence 页面编辑界面的右上方点击“其他宏”（+ 号），然后搜索并选择“Markdown”宏。
+编辑：在弹出的文本框中，直接使用 Markdown 语法进行编辑。 
+方法二：使用第三方应用
+安装应用：在 Confluence 的应用市场中搜索并安装第三方 Markdown 应用，例如 "Render Markdown"。
+使用：安装后，您就可以在 Confluence 页面中使用 Markdown 进行编写了，并且通常会支持语法高亮。 
+方法三：通过转换工具
+使用转换器：您也可以使用开源工具（如 CSDN 博客上提到的 "markdown2confluence"）将 Markdown 文件转换为 Confluence 可以导入的格式，然后导入到 Confluence 中。 
