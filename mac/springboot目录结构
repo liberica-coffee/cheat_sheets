@@ -1,0 +1,83 @@
+根目录结构解析：‌
+
+1. src/main/kotlin/‌
+
+作用‌：存放项目的Kotlin源代码文件
+详细说明‌：
+com/example/demo/：Java/Kotlin的标准包路径结构，遵循反向域名命名规范
+DemoApplication.kt：Spring Boot应用的启动类，包含main方法
+entity/：数据实体类，对应数据库表的字段结构
+mapper/：MyBatis的数据访问接口，定义SQL操作方法
+service/：业务逻辑层，处理具体的业务规则和流程
+controller/：Web控制器层，处理HTTP请求和响应
+
+2. src/main/resources/‌
+
+作用‌：存放项目的配置文件、静态资源和模板文件
+详细说明‌：
+application.yml：Spring Boot的主配置文件，替代传统的application.properties
+db/migration/：Flyway数据库迁移脚本目录，按版本号管理数据库结构变更
+mapper/：MyBatis的XML映射文件，编写复杂的SQL查询语句
+
+3. src/test/kotlin/‌
+
+作用‌：存放项目的单元测试和集成测试代码
+详细说明‌：
+测试类与主代码保持相同的包结构
+使用MockK框架进行依赖模拟
+包含业务逻辑的单元测试和API的集成测试
+
+4. 根目录下的重要文件：‌
+
+build.gradle.kts：Gradle构建脚本，使用Kotlin DSL编写，管理项目依赖和构建配置
+
+各子目录的详细功能：‌
+
+entity/ 目录‌
+
+存放数据模型类，使用Kotlin的data class定义
+每个实体类对应数据库中的一张表
+包含字段验证注解和数据转换逻辑
+
+mapper/ 目录‌
+
+MyBatis的接口层，使用@Mapper注解标记
+定义数据库的CRUD操作方法
+支持注解方式和XML方式编写SQL
+
+service/ 目录‌
+
+实现具体的业务逻辑
+处理事务管理和数据验证
+作为controller和mapper之间的桥梁
+
+controller/ 目录‌
+
+处理RESTful API请求
+包含URL路由映射和参数绑定
+处理异常和返回统一的响应格式
+
+resources/db/migration/ 目录‌
+
+Flyway数据库迁移脚本
+文件名格式：V{版本号}__{描述}.sql
+按版本顺序执行，确保数据库结构的一致性
+
+resources/mapper/ 目录‌
+
+存放MyBatis的XML映射文件
+处理复杂的SQL查询和结果映射
+支持动态SQL和条件查询
+
+config/ 目录‌
+
+存放Spring配置类
+定义Bean的创建和配置
+如数据库连接池配置、Aurora认证配置等
+
+项目组织原则：‌
+
+分层架构‌：清晰的分层结构（controller → service → mapper → entity）
+关注点分离‌：每个目录职责单一，便于维护和测试
+标准化结构‌：遵循Spring Boot和Maven的标准目录布局
+
