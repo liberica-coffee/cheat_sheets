@@ -1,0 +1,29 @@
+在Spring Boot项目中，impl文件夹通常位于service目录下，用于存放服务层接口的具体实现类。
+
+‌impl文件夹的目录位置：‌
+
+text
+Copy Code
+src/main/kotlin/com/example/demo/
+├── service/
+│   ├── impl/          ← 主要存放位置
+│   │   └── UserServiceImpl.kt
+│   └── UserService.kt
+‌impl文件夹的主要作用：‌
+
+‌实现服务接口‌：包含UserService等接口的具体业务逻辑实现
+1
+
+‌遵循接口隔离原则‌：将接口定义与具体实现分离，提高代码的可维护性
+
+‌便于依赖注入‌：通过@Service注解标记实现类，Spring容器能够自动注入依赖
+
+‌事务管理‌：在实现类的方法上使用@Transactional注解管理数据库事务
+
+‌典型的使用场景：‌
+
+UserService.kt（接口）定义业务方法
+impl/UserServiceImpl.kt（实现类）具体实现业务逻辑
+这种分层结构让代码更加清晰，接口定义专注于"做什么"，而实现类专注于"怎么做"。
+
+‌建议‌：如果你的项目还没有建立impl目录，建议在service包下创建impl文件夹来组织服务层代码，这样会让项目结构更加规范。
