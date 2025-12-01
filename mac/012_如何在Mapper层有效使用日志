@@ -1,0 +1,63 @@
+在MyBatis的Mapper层有效使用日志，关键在于配置合适的日志实现并设置恰当的日志级别。
+
+
+核心配置方法‌
+
+---
+
+1. 在application.yml中配置日志级别‌
+
+yaml
+
+logging:
+  level:
+    com.platform.product.mapper: debug
+
+---
+
+2. MyBatis日志实现配置‌
+
+
+在MyBatis配置文件中设置：
+
+xml
+
+<settings>
+  <setting name="logImpl" value="STDOUT_LOGGING"/>
+</settings>
+
+---
+
+3. 具体实现步骤‌
+
+在Mapper接口中使用LoggerFactory创建日志实例：
+
+
+kotlin
+
+@Mapper
+interface UserMapper {
+    
+    companion object {
+        private val log = LoggerFactory.getLogger(UserMapper::class.java)
+    }
+
+    @Select("SELECT * FROM users WHERE id = #{id}")
+    fun findById(id: Long): User? {
+        log.debug("执行SQL查询: 用户ID = $id")
+        // 数据库操作
+    }
+}
+
+---
+
+日志级别说明‌
+
+DEBUG‌：输出SQL语句、参数和查询结果
+INFO‌：记录一般操作信息
+WARN‌：警告级别日志
+ERROR‌：错误级别日志
+💡 实用建议‌：建议将Mapper层的日志级别设置为DEBUG，这样可以清晰地看到执行的SQL语句和参数，便于调试和性能优化。
+
+---
+
