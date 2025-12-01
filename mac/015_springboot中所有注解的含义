@@ -1,0 +1,47 @@
+Spring Boot 提供了丰富的注解来简化开发，以下是按照功能分类整理的常用注解及其含义：
+
+🏗️ 核心配置注解‌
+
+@SpringBootApplication‌：组合注解，包含@Configuration、@EnableAutoConfiguration和@ComponentScan，标识主程序类，是Spring Boot应用的主入口
+
+
+🌐 Web开发注解‌
+
+@Controller‌：标识控制器类，处理HTTP请求
+@RestController‌：@Controller + @ResponseBody，专为RESTful API设计
+@RequestMapping‌：URL到Controller方法的映射
+@GetMapping/@PostMapping‌：分别处理GET和POST请求的快捷方式
+@RequestBody‌：将请求体参数绑定到对象
+‌@ResponseBody‌：方法返回值直接写入HTTP响应体
+
+🔄 依赖注入注解‌
+
+@Autowired‌：自动装配Spring Bean
+@Resource‌：按名称进行依赖注入
+
+🗄️ 数据访问注解‌
+
+@Repository‌：标识DAO层组件
+@Transactional‌：声明式事务管理
+
+📦 Bean管理注解‌
+
+@Service‌：标识服务层组件
+@Component‌：通用组件注解
+@Configuration‌：声明配置类
+‌@Bean‌：产生一个bean并交给Spring管理
+
+
+🔧 条件配置注解‌
+
+@ConditionalOnClass‌：当类路径下存在指定类时生效
+@Profile‌：指定配置在特定环境下激活
+
+📝 数据验证注解‌
+
+@Valid‌：触发参数验证
+@NotNull/@NotEmpty‌：参数非空验证
+
+💡 实用建议‌：建议先从核心注解@SpringBootApplication开始掌握，然后逐步学习Web开发相关的注解，这样可以快速构建起基础的Web应用。
+
+
