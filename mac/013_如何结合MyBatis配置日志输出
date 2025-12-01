@@ -1,0 +1,49 @@
+MyBatis提供了三种配置日志输出的方式，你可以根据项目需求选择最适合的方法。
+
+
+---
+
+方法一：在application.yml中指定Mapper包日志级别‌
+
+yaml
+
+logging:
+  level:
+    com.example.demo.mapper: debug
+
+这种方式会将指定包下的所有Mapper接口的日志级别设置为DEBUG，从而输出SQL语句、参数和执行结果。
+
+---
+
+方法二：配置MyBatis全局日志实现‌
+
+yaml
+
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+此方法会让MyBatis使用标准输出方式打印日志。
+
+---
+
+方法三：在mybatis-config.xml中配置‌
+
+xml
+
+<configuration>
+  <settings>
+    <setting name="logImpl" value="STDOUT_LOGGING"/>
+</settings>
+</configuration>
+
+
+---
+
+💡 实用建议‌：
+对于开发环境，推荐使用方法一，将Mapper包的日志级别设为DEBUG，这样可以清晰地看到执行的SQL细节，便于调试和优化。
+
+---
+
+
+
