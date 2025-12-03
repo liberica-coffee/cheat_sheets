@@ -1,0 +1,151 @@
+你遇到的是IDE（如IntelliJ IDEA）的常见问题。让我分析原因并提供解决方案：
+
+问题分析：为什么需要重新import？
+
+1. IDE同步问题 - IntelliJ有时无法实时检测到Gradle依赖变化
+2. Kotlin增量编译问题 - Kotlin编译器可能需要重新解析import
+3. Gradle缓存问题 - 项目配置变化后缓存未更新
+
+解决方案：
+
+1. 刷新Gradle项目
+
+```bash
+# 命令行执行
+./gradlew clean build
+
+# 或在IntelliJ中
+# 点击右侧Gradle面板 → 刷新按钮 🔄
+```
+
+2. 清除IDE缓存
+
+· File → Invalidate Caches and Restart
+· 选择 "Invalidate and Restart"
+
+3. 启用自动导入
+
+Settings/Preferences → Editor → General → Auto Import
+
+· 勾选 Add unambiguous imports on the fly
+· 勾选 Optimize imports on the fly
+· 勾选 Show import popup
+
+4. Kotlin编译器设置
+
+```gradle
+// build.gradle.kts
+kotlin {
+    sourceSets {
+        all {
+            languageSettings.apply {
+                progressiveMode = true
+            }
+        }
+    }
+}
+```
+
+5. 使用Gradle守护进程
+
+```gradle
+// gradle.properties
+org.gradle.daemon=true
+kotlin.incremental=true
+```
+
+命令行编程方案：
+
+1. 终端编辑器
+
+```bash
+# 使用vim/nano编辑
+vim src/main/kotlin/com/example/MyApplication.kt
+
+# 使用Micro（更现代的终端编辑器）
+micro src/main/kotlin/com/example/MyApplication.kt
+```
+
+2. 实时编译和运行
+
+```bash
+# 使用Gradle的连续构建
+./gradlew build --continuous
+
+# 在另一个终端运行应用
+./gradlew bootRun
+
+# 或者使用组合命令
+./gradlew build --continuous & ./gradlew bootRun
+```
+
+3. 使用Kotlin REPL
+
+```bash
+# 启动Kotlin交互式环境
+./gradlew kotlinShell
+
+# 或直接使用Kotlin编译器
+kotlinc -script your-script.kts
+```
+
+4. 使用开发热重载
+
+```bash
+# Spring Boot DevTools已包含热重载
+./gradlew bootRun --args='--spring.devtools.restart.enabled=true'
+
+# 或使用JRebel（商业工具）
+```
+
+5. 自动检测变化的脚本
+
+```bash
+#!/bin/bash
+# watch.sh - 监控文件变化并自动构建
+while true; do
+    # 监控kotlin文件变化
+    inotifywait -r -e modify src/ --include=".*\.kt$"
+    echo "检测到变化，重新构建..."
+    ./gradlew compileKotlin
+done
+```
+
+推荐工作流：
+
+方案A：IDE + 自动导入
+
+1. 确保上述IDE设置正确
+2. 使用Shift+Ctrl+Alt+/ → Registry
+3. 启用 compiler.automake.allow.when.app.running
+
+方案B：纯命令行开发
+
+```bash
+# 1. 在一个终端监控变化
+./gradlew build -t
+
+# 2. 在另一个终端运行应用
+./gradlew bootRun
+
+# 3. 第三个终端用vim编辑文件
+vim src/main/kotlin/**/*.kt
+```
+
+方案C：远程开发
+
+```bash
+# 使用code-server（VSCode网页版）
+docker run -it -p 8080:8080 -v "$PWD:/home/coder/project" codercom/code-server
+
+# 然后在浏览器中访问 http://localhost:8080
+```
+
+最佳实践建议：
+
+1. 使用Spring Boot DevTools - 自动重启应用
+2. 配置LiveReload - 浏览器自动刷新
+3. 考虑使用Quarkus - 如果热重载很重要，Quarkus的live coding体验更好
+4. 定期清理 - 每月清理一次.gradle和.idea目录
+
+如果你经常需要在命令行工作，我推荐安装tmux或screen来管理多个终端会话，这样可以在一个SSH会话中同时编辑、构建和运行应用。
