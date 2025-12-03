@@ -1,0 +1,366 @@
+这确实是用 CLI + VIM 开发时的主要痛点！我为你提供一套完整的解决方案。
+
+1. 代码智能提示和补全
+
+安装 LSP（Language Server Protocol）
+
+```vim
+" ~/.vimrc 配置
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+
+" 安装必要的扩展
+:CocInstall coc-kotlin
+:CocInstall coc-java
+:CocInstall coc-yaml
+:CocInstall coc-xml
+:CocInstall coc-json
+```
+
+Coc 配置（~/.vim/coc-settings.json）
+
+```json
+{
+  "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx2G -Xms100m",
+  "kotlin.compiler.jvm.target": "1.8",
+  "java.compile.nullAnalysis.mode": "automatic",
+  "coc.preferences.formatOnSaveFiletypes": ["kotlin", "java", "xml"],
+  "suggest.noselect": false
+}
+```
+
+2. 文档查看和 API 探索
+
+方法1：Kotlin REPL 实时探索
+
+```bash
+# 进入 Kotlin REPL
+./gradlew kotlinc
+
+# 在 REPL 中测试库方法
+>>> import org.springframework.jdbc.core.JdbcTemplate
+>>> import org.springframework.jdbc.core.queryForObject
+>>> // 查看方法签名
+>>> :type JdbcTemplate::queryForList
+```
+
+方法2：Gradle 依赖源码
+
+```groovy
+// build.gradle.kts 添加
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions.jvmTarget = "17"
+    kotlinOptions.freeCompilerArgs = listOf("-Xjsr305=strict")
+}
+
+// 下载源码
+dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.2")
+    
+    // 下载源码和文档
+    implementation("org.springframework.boot:spring-boot-starter-web") {
+        artifact {
+            classifier = 'sources'
+        }
+    }
+}
+```
+
+方法3：快速查看源码
+
+```bash
+# 1. 查看 Gradle 依赖树
+./gradlew dependencies --configuration compileClasspath
+
+# 2. 查看下载的 jar 位置
+find ~/.gradle/caches -name "*.jar" | grep spring-boot
+find ~/.gradle/caches -name "*.jar" | grep mybatis
+
+# 3. 反编译查看（使用 fernflower 或 cfr）
+java -jar fernflower.jar library.jar decompiled/
+```
+
+3. 调试技巧
+
+方法1：日志调试
+
+```kotlin
+import org.slf4j.LoggerFactory
+
+class UserService {
+    // 添加详细日志
+    companion object {
+        private val log = LoggerFactory.getLogger(UserService::class.java)
+    }
+    
+    fun findUser(id: Long): User? {
+        log.debug("查找用户: id={}", id)
+        log.trace("SQL 参数: id={}", id)
+        
+        val result = userMapper.findById(id)
+        log.debug("查询结果: {}", result)
+        return result
+    }
+}
+```
+
+application.yml 开启调试日志：
+
+```yaml
+logging:
+  level:
+    com.example.demo: DEBUG
+    org.mybatis: DEBUG
+    org.springframework.jdbc: TRACE
+    org.springframework.transaction: DEBUG
+  file:
+    name: logs/app.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+```
+
+方法2：远程调试
+
+```bash
+# 1. 以调试模式启动应用
+./gradlew bootRun --debug-jvm
+
+# 或添加 JVM 参数
+export JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
+./gradlew bootRun
+
+# 2. 在 VIM 中使用 nvim-dap 调试
+Plug 'mfussenegger/nvim-dap'
+Plug 'rcarriga/nvim-dap-ui'
+
+# 3. 连接调试器
+:lua require('dap').continue()
+```
+
+方法3：简单但有效的打印调试
+
+```kotlin
+// 创建调试工具类
+object DebugUtils {
+    inline fun <reified T> T.printMethods() {
+        println("=== ${T::class.simpleName} 的方法 ===")
+        T::class.java.declaredMethods.forEach { method ->
+            println("${method.returnType.simpleName} ${method.name}(${
+                method.parameters.joinToString { it.type.simpleName }
+            })")
+        }
+    }
+    
+    inline fun <reified T> T.printProperties() {
+        println("=== ${T::class.simpleName} 的属性 ===")
+        T::class.java.declaredFields.forEach { field ->
+            println("${field.type.simpleName} ${field.name}")
+        }
+    }
+}
+
+// 使用示例
+fun exploreJdbcTemplate() {
+    val template = JdbcTemplate()
+    DebugUtils.printMethods<JdbcTemplate>()
+    DebugUtils.printProperties<JdbcTemplate>()
+}
+```
+
+4. API 文档快速访问
+
+方法1：终端文档查看
+
+```bash
+# 1. 使用 zeal/dash（离线文档）
+sudo apt install zeal
+zeal &
+
+# 添加文档集：
+# - Spring Framework
+# - Kotlin
+# - MyBatis
+
+# 2. 使用 devdocs.io
+# 安装 devdocs-cli
+pip install devdocs-cli
+
+# 搜索方法
+devdocs spring-data-jdbc JdbcTemplate::queryForList
+devdocs mybatis @Select
+
+# 3. 使用 cht.sh（推荐）
+curl cht.sh/spring/jdbctemplate
+curl cht.sh/kotlin/collections/map
+curl cht.sh/mybatis/mapper
+```
+
+方法2：VIM 内查看文档
+
+```vim
+" 安装 vim-cheat40
+Plug 'dbeniamine/cheat.sh-vim'
+
+" 使用：
+:Kotlin map
+:Spring jdbctemplate
+:MyBatis annotation
+
+" 或使用快捷键
+nnoremap <leader>ch :Cheat<space>
+```
+
+5. 实用的探索脚本
+
+创建 explore.sh
+
+```bash
+#!/bin/bash
+# 快速探索库的脚本
+
+# 1. 查看 Spring Bean 定义
+function explore_spring() {
+    echo "=== Spring Beans ==="
+    curl -s http://localhost:8080/actuator/beans | jq '.beans[] | select(.type | contains("'$1'"))'
+}
+
+# 2. 查看映射器接口
+function explore_mapper() {
+    echo "=== MyBatis Mappers ==="
+    find src/main/kotlin -name "*Mapper.kt" -exec grep -l "@Mapper" {} \;
+}
+
+# 3. 查看 API 端点
+function explore_endpoints() {
+    echo "=== API Endpoints ==="
+    curl -s http://localhost:8080/actuator/mappings | jq '.contexts.application.mappings.dispatcherServlets.dispatcherServlet[]'
+}
+
+# 4. 查看依赖版本
+function explore_versions() {
+    ./gradlew properties | grep -E '(version|VERSION)'
+}
+```
+
+6. 测试驱动探索
+
+创建探索测试
+
+```kotlin
+// src/test/kotlin/ExploreTest.kt
+import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.jdbc.core.JdbcTemplate
+
+@SpringBootTest
+class ExploreTest {
+    
+    @Autowired(required = false)
+    private lateinit var jdbcTemplate: JdbcTemplate
+    
+    @Test
+    fun `explore autowired beans`() {
+        // 列出所有自动注入的 Bean
+        println("=== Available Beans ===")
+        // 这会在测试输出中显示
+    }
+    
+    @Test
+    fun `test jdbc template methods`() {
+        val methods = JdbcTemplate::class.java.methods
+        println("=== JdbcTemplate Methods ===")
+        methods.take(10).forEach { method ->
+            println("${method.name}: ${method.parameterCount} params")
+        }
+    }
+}
+```
+
+运行测试查看结果：
+
+```bash
+./gradlew test --tests "ExploreTest"
+```
+
+7. MyBatis 特定调试
+
+SQL 日志输出
+
+```yaml
+# application.yml
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 控制台输出 SQL
+    log-prefix: "[MYBATIS] "
+```
+
+创建 MyBatis 工具函数
+
+```kotlin
+// MyBatisDebug.kt
+import org.apache.ibatis.mapping.BoundSql
+import org.apache.ibatis.session.SqlSessionFactory
+
+class MyBatisDebug(val sqlSessionFactory: SqlSessionFactory) {
+    
+    fun printMappedStatements() {
+        val configuration = sqlSessionFactory.configuration
+        println("=== Mapped Statements ===")
+        configuration.mappedStatements.forEach { (key, value) ->
+            println("ID: $key")
+            println("SQL: ${getBoundSql(value).sql}")
+            println()
+        }
+    }
+    
+    fun explainSql(statementId: String, params: Map<String, Any>) {
+        val statement = sqlSessionFactory.configuration.getMappedStatement(statementId)
+        val boundSql = statement.boundSql(params)
+        println("=== SQL Explanation ===")
+        println("原始 SQL: ${boundSql.sql}")
+        println("参数: ${boundSql.parameterObject}")
+    }
+}
+```
+
+8. 快捷键配置（VIM）
+
+```vim
+" 探索快捷键
+nnoremap <leader>em :call ExploreMethods()<CR>
+nnoremap <leader>ed :!devdocs <cword><CR>
+nnoremap <leader>et :!curl cht.sh/<cword><CR>
+
+" 调试快捷键
+nnoremap <leader>db :call AddDebugLog()<CR>
+nnoremap <leader>dl :call DeleteDebugLogs()<CR>
+
+function! ExploreMethods()
+    let current_word = expand('<cword>')
+    execute '!./gradlew kotlinc -e "import ' . current_word . '; println(' . current_word . '::class.methods.map { it.name })"'
+endfunction
+
+function! AddDebugLog()
+    execute 'normal Olog.debug("DEBUG: {}")'
+endfunction
+```
+
+总结建议
+
+1. 分层探索：
+   · 先用 curl cht.sh 快速了解
+   · 再用测试代码验证
+   · 最后查看源码深入
+2. 组合使用：
+   ```bash
+   # 组合命令探索
+   curl cht.sh/spring/jdbctemplate/query | grep -A5 "queryForList"
+   
+   # 然后写测试验证
+   vim src/test/kotlin/JdbcExplore.kt
+   ```
+3. 保持简单：开始时用简单的打印调试，熟悉后再用复杂工具
+
+需要我详细解释某个特定的库（Spring、MyBatis 或 Kotlin 标准库）的探索方法吗？
+
