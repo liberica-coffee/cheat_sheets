@@ -1,0 +1,180 @@
+我将为你详细解析一个基于 Spring Boot + Gradle + Kotlin + MyBatis + PostgreSQL/AWS Aurora 项目的完整目录结构和各层含义。
+
+📁 项目标准目录结构
+
+```
+my-project/
+├── 📂 gradle/                          # Gradle Wrapper 文件
+│   └── wrapper/
+├── 📂 src/                             # 源代码目录
+│   ├── 📂 main/                        # 主源代码
+│   │   ├── 📂 kotlin/                  # Kotlin 源代码
+│   │   │   └── com/example/myapp/      # 包结构根目录
+│   │   │       ├── 📂 config/          # 配置类
+│   │   │       │   ├── DatabaseConfig.kt     # 数据库配置
+│   │   │       │   ├── MyBatisConfig.kt      # MyBatis 配置
+│   │   │       │   └── WebConfig.kt          # Web 相关配置
+│   │   │       ├── 📂 controller/      # 控制器层（API 入口）
+│   │   │       │   ├── UserController.kt     # 用户相关 API
+│   │   │       │   └── ProductController.kt  # 产品相关 API
+│   │   │       ├── 📂 service/         # 业务逻辑层
+│   │   │       │   ├── 📂 impl/        # 业务逻辑实现
+│   │   │       │   │   ├── UserServiceImpl.kt
+│   │   │       │   │   └── ProductServiceImpl.kt
+│   │   │       │   └── UserService.kt  # 服务接口
+│   │   │       ├── 📂 repository/      # 数据访问层（MyBatis）
+│   │   │       │   ├── UserRepository.kt     # 用户数据接口
+│   │   │       │   └── ProductRepository.kt  # 产品数据接口
+│   │   │       ├── 📂 model/           # 数据模型
+│   │   │       │   ├── 📂 entity/      # 数据库实体
+│   │   │       │   │   ├── UserEntity.kt     # 对应数据库表
+│   │   │       │   │   └── ProductEntity.kt
+│   │   │       │   ├── 📂 dto/         # 数据传输对象
+│   │   │       │   │   ├── UserDto.kt        # API 请求/响应对象
+│   │   │       │   │   └── ProductDto.kt
+│   │   │       │   └── 📂 request/     # API 请求对象
+│   │   │       │       ├── CreateUserRequest.kt
+│   │   │       │       └── UpdateProductRequest.kt
+│   │   │       ├── 📂 mapper/          # MyBatis XML Mapper 接口
+│   │   │       │   ├── UserMapper.kt         # 对应 XML 的接口
+│   │   │       │   └── ProductMapper.kt
+│   │   │       └── Application.kt      # Spring Boot 主启动类
+│   │   └── 📂 resources/               # 资源文件
+│   │       ├── 📂 mapper/              # MyBatis XML 映射文件
+│   │       │   ├── UserMapper.xml      # SQL 映射定义
+│   │       │   └── ProductMapper.xml
+│   │       ├── 📂 db/migration/        # 数据库迁移脚本（可选）
+│   │       │   └── V1__init_tables.sql # Flyway/Liquibase 脚本
+│   │       ├── application.yml         # 主配置文件
+│   │       ├── application-dev.yml     # 开发环境配置
+│   │       ├── application-prod.yml    # 生产环境配置
+│   │       └── logback-spring.xml      # 日志配置
+│   └── 📂 test/                        # 测试代码
+│       └── kotlin/com/example/myapp/   # 测试包
+│           ├── UserControllerTest.kt   # 控制器测试
+│           ├── UserServiceTest.kt      # 服务层测试
+│           └── TestContainersConfig.kt # 集成测试配置（用于数据库测试）
+├── 📂 build/generated/                 # 生成的源代码（编译时）
+│   └── 📂 mapper/                      # MyBatis 动态代理类（自动生成）
+├── build.gradle.kts                    # Gradle 构建脚本
+├── settings.gradle.kts                 # Gradle 项目设置
+├── gradlew                            # Gradle Wrapper（Linux/Mac）
+├── gradlew.bat                        # Gradle Wrapper（Windows）
+└── gradle.properties                  # Gradle 属性文件
+```
+
+🏗️ 各层架构与职责
+
+1. 配置层 (config/)
+
+· DatabaseConfig.kt: 配置 PostgreSQL/AWS Aurora 连接池（HikariCP）
+· MyBatisConfig.kt: 配置 MyBatis 扫描路径、事务管理等
+· WebConfig.kt: Web 相关配置（拦截器、CORS 等）
+
+2. 控制层 (controller/)
+
+· 职责: 接收 HTTP 请求，参数校验，调用服务层，返回响应
+· 特点: 使用 @RestController, @RequestMapping 注解
+· 与 AWS 集成: 可以在这里添加 AWS SDK 客户端（如 S3、SQS）
+
+3. 服务层 (service/)
+
+· 接口层 (service/): 定义业务逻辑接口
+· 实现层 (service/impl/): 实现具体业务逻辑，调用数据访问层
+· 事务管理: 通常在服务层使用 @Transactional
+
+4. 数据访问层 (repository/ 和 mapper/)
+
+· Repository 接口: 定义数据操作方法（Kotlin 接口）
+· Mapper 接口: MyBatis 的 DAO 接口，与 XML 映射文件对应
+· XML Mapper: 在 resources/mapper/ 中定义复杂 SQL
+
+5. 模型层 (model/)
+
+· Entity: 与数据库表一一对应的实体类
+· DTO: 用于 API 传输的数据对象，与 Entity 分离
+· Request/Response: 特定 API 的请求/响应对象
+
+🔗 技术栈特定配置要点
+
+Gradle 配置 (build.gradle.kts)
+
+```kotlin
+plugins {
+    kotlin("jvm") version "1.9.0"
+    kotlin("plugin.spring") version "1.9.0"
+    id("org.springframework.boot") version "3.1.5"
+    id("io.spring.dependency-management") version "1.1.3"
+}
+
+dependencies {
+    // Spring Boot
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    
+    // Kotlin
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    
+    // MyBatis
+    implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.2")
+    
+    // PostgreSQL / AWS Aurora
+    runtimeOnly("org.postgresql:postgresql")
+    
+    // AWS SDK (可选)
+    implementation(platform("software.amazon.awssdk:bom:2.20.0"))
+    implementation("software.amazon.awssdk:rds") // Aurora 管理
+    implementation("software.amazon.awssdk:secretsmanager") // 密码管理
+    
+    // 测试
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.testcontainers:postgresql:1.19.0")
+}
+```
+
+数据库配置 (application.yml)
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://your-aurora-cluster.cluster-xxx.us-east-1.rds.amazonaws.com:5432/mydb
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD} # 建议使用 AWS Secrets Manager
+    hikari:
+      maximum-pool-size: 10
+      connection-timeout: 30000
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.example.myapp.model.entity
+  configuration:
+    map-underscore-to-camel-case: true # 下划线转驼峰
+```
+
+AWS Aurora 连接最佳实践
+
+1. 使用 IAM 数据库认证（而不是用户名密码）
+2. 通过 Secrets Manager 管理凭证
+3. 配置读写分离（连接到 Aurora 集群端点）
+4. 启用连接池应对 Lambda 冷启动
+
+🚀 快速启动流程
+
+1. 生成项目: 使用 start.spring.io 选择 Kotlin + Gradle
+2. 添加依赖: 按上面的 Gradle 配置添加
+3. 配置数据库: 根据环境配置不同数据源
+4. 创建实体和Mapper: 从 Entity → Mapper → XML → Repository → Service → Controller
+5. 启用 MyBatis 扫描: 在主类添加 @MapperScan("com.example.myapp.mapper")
+
+📊 架构数据流
+
+```
+HTTP Request → Controller → Service → Repository → Mapper → XML → PostgreSQL/Aurora
+                                         ↑
+Response ← DTO转换 ← Entity ← 数据库结果集
+```
+
+这种分层结构确保了关注点分离，便于团队协作和测试覆盖。根据项目规模，你还可以添加 common/ 目录放工具类，aspect/ 目录放 AOP 切面等模块。
+
+如果你需要某个特定部分（如完整的 MyBatis XML 示例、AWS SDK 集成代码或测试配置）的详细代码，我可以为你进一步展开。
