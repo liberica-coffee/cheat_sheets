@@ -1,0 +1,487 @@
+Kotlin 可见性修饰符详解
+
+Kotlin 有四种可见性修饰符，它们控制类、接口、函数、属性等的访问范围。
+
+📊 四种可见性修饰符概览
+
+修饰符 含义 访问范围
+public 公开 任何地方都可以访问（默认）
+internal 内部 同一模块内可以访问
+protected 受保护 本类和子类可以访问
+private 私有 仅本类/本文件内可以访问
+
+🔍 详细解释与示例
+
+1. private - 最严格的可见性
+
+```kotlin
+// 文件：User.kt
+
+// 1. 顶层声明（文件级别）
+private val SECRET_KEY = "abc123"  // 只在当前文件可见
+
+private fun privateFunction() {    // 只在当前文件可见
+    println("Secret function")
+}
+
+// 2. 类内部使用
+class User(private val id: Int, val name: String) {
+    // 私有属性
+    private var password: String = ""
+    
+    // 私有方法
+    private fun validatePassword(pwd: String): Boolean {
+        return pwd.length >= 8
+    }
+    
+    // 公开方法可以访问私有成员
+    fun changePassword(newPassword: String) {
+        if (validatePassword(newPassword)) {
+            password = newPassword
+            println("Password changed for user $id")
+        }
+    }
+    
+    // 私有嵌套类
+    private class Token(val value: String)
+    
+    // 内部类可以访问外部类的私有成员
+    inner class Profile {
+        fun showInfo() {
+            println("User ID: $id")  // ✅ 可以访问外部类的私有属性
+            // println("Password: $password")  // ✅ 也可以访问
+        }
+    }
+}
+
+// 3. 扩展函数的私有性
+private fun User.privateExtension() {
+    println("Private extension for User")
+}
+
+// 在其他文件中：
+// ❌ 不能访问：
+// SECRET_KEY
+// privateFunction()
+// User().password
+// User().validatePassword()
+// User.Token
+```
+
+2. protected - 继承体系中的可见性
+
+```kotlin
+open class Animal {
+    // 受保护的属性
+    protected val species: String = "Animal"
+    
+    // 受保护的方法
+    protected fun makeSound() {
+        println("Animal sound")
+    }
+    
+    // 公开方法可以暴露受保护的内容
+    fun introduce() {
+        println("I am a $species")
+        makeSound()
+    }
+    
+    // 私有属性 - 子类不能访问
+    private val secretCode = "123"
+}
+
+class Dog : Animal() {
+    fun bark() {
+        println("Dog barking")
+        
+        // ✅ 可以访问父类的 protected 成员
+        println("Species: $species")
+        makeSound()
+        
+        // ❌ 不能访问父类的 private 成员
+        // println(secretCode)
+    }
+    
+    // 可以覆盖 protected 方法
+    override protected fun makeSound() {
+        super.makeSound()  // 调用父类实现
+        println("Woof!")
+    }
+}
+
+// 在其他地方：
+val dog = Dog()
+dog.introduce()  // ✅ 公开方法
+// dog.species    // ❌ 不能直接访问 protected 属性
+// dog.makeSound() // ❌ 不能直接访问 protected 方法
+```
+
+重要限制：
+
+· protected 不能用于顶层声明（文件级）
+· 在接口中，protected 无效（接口成员默认是公开的）
+
+3. internal - 模块级别的可见性
+
+```kotlin
+// 文件：auth.kt（模块 A）
+internal class AuthService {  // 只在模块 A 内可见
+    internal val API_KEY = "key123"  // 模块内可见
+    
+    internal fun authenticate(user: String): Boolean {
+        return validateInternal(user)
+    }
+    
+    private fun validateInternal(user: String): Boolean {
+        return user.isNotEmpty()
+    }
+}
+
+// 在模块 A 的其他文件中：
+fun test() {
+    val auth = AuthService()  // ✅ 可以访问
+    println(auth.API_KEY)     // ✅ 可以访问
+    auth.authenticate("admin") // ✅ 可以调用
+}
+
+// --------------------------------------------------
+// 在模块 B 中：
+// ❌ 完全不能访问 AuthService 及其成员
+// val auth = AuthService()
+// auth.API_KEY
+```
+
+什么是模块？
+
+· 一个 IntelliJ IDEA 模块
+· 一个 Maven/Gradle 项目
+· 通过一次 Ant 任务编译的一组文件
+
+4. public - 默认的可见性
+
+```kotlin
+// 文件：utils.kt
+
+// 默认就是 public，可以不写
+public val PI = 3.14159      // 在任何地方可访问
+val VERSION = "1.0"          // 默认也是 public
+
+public class Calculator {     // 在任何地方可访问
+    public fun add(a: Int, b: Int): Int = a + b
+    fun subtract(a: Int, b: Int): Int = a - b  // 默认 public
+}
+
+// 在任何其他模块、文件中：
+fun test() {
+    println(PI)                // ✅
+    println(VERSION)           // ✅
+    val calc = Calculator()    // ✅
+    calc.add(1, 2)             // ✅
+    calc.subtract(3, 1)        // ✅
+}
+```
+
+🎯 应用在不同位置的规则
+
+1. 在构造函数上的可见性
+
+```kotlin
+// 主构造函数默认是 public
+class User1(val name: String)  // 公开构造函数
+
+// 私有构造函数（单例模式、工厂模式）
+class Database private constructor() {
+    companion object {
+        private var instance: Database? = null
+        
+        fun getInstance(): Database {
+            if (instance == null) {
+                instance = Database()
+            }
+            return instance!!
+        }
+    }
+}
+
+// 使用
+// val db = Database()  // ❌ 不能直接构造
+val db = Database.getInstance()  // ✅ 通过工厂方法
+
+// 受保护的构造函数
+open class Base protected constructor(val id: Int)
+
+class Derived : Base(1)  // ✅ 子类可以调用
+// val base = Base(1)    // ❌ 外部不能调用
+```
+
+2. 在 getter/setter 上的可见性
+
+```kotlin
+class Person {
+    // 属性公开，但 setter 私有
+    var name: String = ""
+        private set  // 只能在类内部修改
+    
+    // 属性公开，getter 公开，setter 内部可见
+    var age: Int = 0
+        internal set
+    
+    fun changeName(newName: String) {
+        name = newName  // ✅ 类内部可以修改
+    }
+}
+
+val person = Person()
+person.name = "Alice"  // ❌ 编译错误：setter 是私有的
+person.age = 25        // ✅ 如果在同一模块内
+```
+
+3. 在接口中的可见性
+
+```kotlin
+interface MyInterface {
+    // 接口成员默认是 public
+    fun publicMethod()
+    
+    // 不能使用 protected
+    // protected fun protectedMethod()  // ❌ 编译错误
+    
+    // 可以使用 private（Kotlin 1.4+）
+    private fun privateMethod() {
+        println("Private interface method")
+    }
+    
+    // 默认实现可以调用私有方法
+    fun defaultMethod() {
+        privateMethod()
+        println("Default method")
+    }
+}
+
+class MyClass : MyInterface {
+    override fun publicMethod() {
+        println("Implemented public method")
+        // defaultMethod()  // ✅ 可以调用接口的默认方法
+    }
+}
+```
+
+🔄 可见性修饰符对比
+
+表格总结
+
+场景 public internal protected private
+顶层声明 所有地方 模块内 ❌ 不允许 文件内
+类成员 所有地方 模块内 子类 类内
+接口成员 所有地方 模块内 ❌ 不允许 接口内
+构造函数 所有地方 模块内 子类 类内
+getter/setter 同属性 可单独设置 可单独设置 可单独设置
+
+访问范围图示
+
+```
+文件A.kt
+├── privateTopLevel    ──┐
+├── internalTopLevel     │ 同一模块
+├── publicTopLevel       │
+└── class ClassA         │
+    ├── privateMember  ──┘ 仅 ClassA 内
+    ├── protectedMember ──┬─┐ ClassA + 子类
+    ├── internalMember    │ │ 同一模块
+    └── publicMember      │ │ 所有地方
+                          │ │
+文件B.kt（同一模块）      │ │
+└── class ClassB : ClassA─┘ │
+    └── 可访问：             │
+        - protectedMember   │
+        - internalMember    │
+        - publicMember      │
+                           │
+文件C.kt（不同模块）        │
+└── 只能访问：              │
+    - publicTopLevel       │
+    - publicMember ────────┘
+```
+
+🛠️ 实际应用场景
+
+1. 封装数据（Encapsulation）
+
+```kotlin
+class BankAccount {
+    private var balance: Double = 0.0
+    
+    fun deposit(amount: Double) {
+        if (amount > 0) {
+            balance += amount
+            logTransaction("Deposit: $amount")
+        }
+    }
+    
+    fun withdraw(amount: Double): Boolean {
+        if (amount > 0 && balance >= amount) {
+            balance -= amount
+            logTransaction("Withdraw: $amount")
+            return true
+        }
+        return false
+    }
+    
+    fun getBalance(): Double = balance
+    
+    private fun logTransaction(message: String) {
+        println("Transaction: $message, Balance: $balance")
+    }
+}
+
+// 使用
+val account = BankAccount()
+account.deposit(1000.0)
+account.withdraw(500.0)
+println(account.getBalance())
+// account.balance = 1000000  // ❌ 不能直接修改，保证数据安全
+```
+
+2. 模块化设计
+
+```kotlin
+// 模块：database
+internal class DatabaseConnection {  // 内部实现细节
+    internal fun connect() { ... }
+    internal fun disconnect() { ... }
+}
+
+public class UserRepository {  // 公开API
+    private val db = DatabaseConnection()
+    
+    public fun getUsers(): List<User> {
+        db.connect()
+        // 查询逻辑
+        db.disconnect()
+        return emptyList()
+    }
+}
+
+// 其他模块只能使用 UserRepository，不能直接访问 DatabaseConnection
+```
+
+3. 继承设计
+
+```kotlin
+abstract class PaymentProcessor {
+    // 模板方法模式
+    fun processPayment(amount: Double): Boolean {
+        validate()
+        val result = executePayment(amount)
+        logPayment(result)
+        return result
+    }
+    
+    protected abstract fun executePayment(amount: Double): Boolean
+    
+    protected open fun validate(): Boolean = true
+    
+    private fun logPayment(success: Boolean) {
+        println("Payment ${if (success) "succeeded" else "failed"}")
+    }
+}
+
+class CreditCardProcessor : PaymentProcessor() {
+    override protected fun executePayment(amount: Double): Boolean {
+        println("Processing credit card payment: $$amount")
+        return true
+    }
+    
+    override protected fun validate(): Boolean {
+        println("Validating credit card...")
+        return super.validate()
+    }
+}
+```
+
+⚠️ 常见错误与注意事项
+
+1. 过度使用 private
+
+```kotlin
+// ❌ 过度封装
+class OverEncapsulated {
+    private var a: Int = 0
+    private var b: Int = 0
+    private var c: Int = 0
+    
+    fun setA(value: Int) { a = value }
+    fun getA(): Int = a
+    fun setB(value: Int) { b = value }
+    fun getB(): Int = b
+    // ... 冗长的getter/setter
+}
+
+// ✅ 适当封装
+data class UserInfo(
+    val name: String,
+    val email: String,
+    private val password: String  // 敏感信息应该私有
+)
+```
+
+2. Java 互操作性问题
+
+```kotlin
+// Kotlin 中的 internal
+internal class InternalClass
+
+// Java 中会变成 public（但名称会被修饰）
+// 实际编译后：InternalClass 变成 public
+// 但名字会变成：InternalClass$moduleName
+```
+
+3. 可见性不一致
+
+```kotlin
+open class Parent {
+    // ❌ 不好的设计：公开方法返回私有类型
+    private class Inner
+    open fun create(): Inner = Inner()
+}
+
+class Child : Parent() {
+    // ❌ 编译错误：不能覆盖，因为返回类型不可访问
+    // override fun create(): Inner = Inner()
+}
+```
+
+💡 最佳实践建议
+
+1. 最小权限原则：从 private 开始，按需放宽
+2. 多用 internal：在模块内公开，对外隐藏实现
+3. 慎用 protected：会导致强耦合，优先考虑组合
+4. 合理使用 public：API 边界要清晰
+5. 测试考虑：需要测试时，适当放宽可见性或用 internal
+
+```kotlin
+// 好的可见性设计示例
+class ShoppingCart {
+    // 私有：内部状态
+    private val items = mutableListOf<CartItem>()
+    private var discount = 0.0
+    
+    // 公开：核心API
+    fun addItem(item: CartItem) { ... }
+    fun removeItem(itemId: String) { ... }
+    fun getTotal(): Double { ... }
+    
+    // 内部：模块内部使用
+    internal fun applyDiscount(code: String) { ... }
+    
+    // 受保护：为扩展设计
+    protected open fun validateItem(item: CartItem): Boolean = ...
+}
+
+// 测试时可以放在同一模块访问 internal 成员
+// 或者使用 @VisibleForTesting 注解
+```
+
+记住：可见性修饰符不仅是技术选择，更是设计决策。好的可见性设计能让代码更安全、更易维护、更模块化。
+
+你在实际项目中遇到过可见性相关的问题吗？比如 Java 互操作、测试困难、或者设计困惑？我可以提供针对性的建议！
