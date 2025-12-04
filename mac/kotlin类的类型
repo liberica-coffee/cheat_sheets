@@ -1,0 +1,470 @@
+Kotlin 中的所有类类型
+
+Kotlin 的类系统非常丰富，我来为你全面梳理所有类类型：
+
+📊 基础类类型分类
+
+1. 按声明方式分类
+
+类型 关键字 特点
+普通类 class 标准类定义
+数据类 data class 自动生成toString()、equals()、hashCode()、copy()
+密封类 sealed class 有限制的类层次结构
+枚举类 enum class 固定数量的实例
+抽象类 abstract class 不能实例化，用于继承
+接口 interface 只有声明，没有实现
+注解类 annotation class 用于元数据
+对象声明 object 单例对象
+伴生对象 companion object 类的静态成员容器
+内部类 inner class 持有外部类引用
+嵌套类 class 不持有外部类引用
+
+🔍 详细解析每种类型
+
+1. 普通类（Class）
+
+```kotlin
+// 基本形式
+class Person(val name: String, var age: Int) {
+    // 主构造函数参数自动成为属性
+    
+    // 次构造函数
+    constructor(name: String) : this(name, 0)
+    
+    // 属性
+    val isAdult: Boolean
+        get() = age >= 18
+    
+    // 方法
+    fun greet() = "Hello, I'm $name"
+}
+
+// 使用
+val person = Person("Alice", 25)
+```
+
+2. 数据类（Data Class）
+
+```kotlin
+// 自动生成 equals(), hashCode(), toString(), copy(), componentN()
+data class User(
+    val id: Int,
+    val name: String,
+    val email: String
+)
+
+// 使用
+val user1 = User(1, "Alice", "alice@email.com")
+val user2 = user1.copy(name = "Bob")  // 复制并修改部分属性
+val (id, name, email) = user1  // 解构声明
+
+// 限制：主构造函数必须至少有一个参数
+```
+
+3. 密封类（Sealed Class）
+
+```kotlin
+// 定义有限可能的子类集合
+sealed class Result<out T> {
+    data class Success<T>(val data: T) : Result<T>()
+    data class Error(val message: String) : Result<Nothing>()
+    object Loading : Result<Nothing>()
+}
+
+// 使用（when表达式会检查是否覆盖所有情况）
+fun handleResult(result: Result<String>) {
+    when (result) {
+        is Result.Success -> println("Success: ${result.data}")
+        is Result.Error -> println("Error: ${result.message}")
+        Result.Loading -> println("Loading...")
+        // 不需要 else 分支！
+    }
+}
+```
+
+4. 枚举类（Enum Class）
+
+```kotlin
+enum class Color(val rgb: Int) {
+    RED(0xFF0000),
+    GREEN(0x00FF00),
+    BLUE(0x0000FF);  // 注意分号
+    
+    // 可以添加方法
+    fun hexCode() = "#${rgb.toString(16).uppercase()}"
+}
+
+// 使用
+val color = Color.RED
+println(color.hexCode())
+
+// 枚举常量可以实现接口
+enum class Direction : Runnable {
+    NORTH {
+        override fun run() { println("Going north") }
+    },
+    SOUTH {
+        override fun run() { println("Going south") }
+    }
+}
+```
+
+5. 抽象类（Abstract Class）
+
+```kotlin
+abstract class Animal(val name: String) {
+    // 抽象属性
+    abstract val sound: String
+    
+    // 抽象方法
+    abstract fun makeSound()
+    
+    // 具体方法
+    fun introduce() {
+        println("I'm $name")
+    }
+}
+
+class Dog(name: String) : Animal(name) {
+    override val sound = "Woof!"
+    
+    override fun makeSound() {
+        println(sound)
+    }
+}
+```
+
+6. 接口（Interface）
+
+```kotlin
+// Kotlin接口可以有属性（但不能有幕后字段）和方法实现
+interface Clickable {
+    val isEnabled: Boolean  // 抽象属性
+    
+    fun click()  // 抽象方法
+    
+    fun show() {  // 带默认实现的方法
+        println("Clickable element")
+    }
+}
+
+interface Focusable {
+    fun show() {
+        println("Focusable element")
+    }
+}
+
+class Button : Clickable, Focusable {
+    override val isEnabled: Boolean = true
+    
+    override fun click() {
+        println("Button clicked")
+    }
+    
+    // 解决多个接口方法冲突
+    override fun show() {
+        super<Clickable>.show()
+        super<Focusable>.show()
+        println("Button show")
+    }
+}
+```
+
+7. 对象声明（Object Declaration） - 单例
+
+```kotlin
+// 立即创建的单例
+object Singleton {
+    private var count = 0
+    
+    fun increment() = count++
+    fun getCount() = count
+    
+    init {
+        println("Singleton initialized")
+    }
+}
+
+// 使用
+Singleton.increment()
+println(Singleton.getCount())
+
+// 实现接口
+object HttpClient : Closeable {
+    override fun close() {
+        println("Closing connection")
+    }
+    
+    fun get(url: String) = "Response from $url"
+}
+```
+
+8. 伴生对象（Companion Object）
+
+```kotlin
+class MyClass {
+    companion object Factory {
+        const val TAG = "MyClass"
+        
+        fun create(): MyClass = MyClass()
+        
+        // 可以继承接口
+        interface FactoryInterface
+    }
+}
+
+// 使用
+val instance = MyClass.create()  // 或 MyClass.Factory.create()
+println(MyClass.TAG)
+
+// 作为工厂
+class User private constructor(val name: String) {
+    companion object {
+        fun create(name: String): User {
+            // 可以在这里添加创建逻辑
+            return User(name)
+        }
+    }
+}
+```
+
+9. 对象表达式（Object Expression）- 匿名对象
+
+```kotlin
+// 类似Java的匿名内部类
+val listener = object : MouseAdapter() {
+    override fun mouseClicked(e: MouseEvent) {
+        println("Mouse clicked")
+    }
+    
+    override fun mouseEntered(e: MouseEvent) {
+        println("Mouse entered")
+    }
+    
+    // 可以有自己的方法和属性
+    val timestamp = System.currentTimeMillis()
+}
+
+// 简单的对象表达式（不继承任何类）
+val data = object {
+    val x = 10
+    val y = 20
+    fun sum() = x + y
+}
+println(data.sum())
+```
+
+10. 内部类（Inner Class）
+
+```kotlin
+class Outer {
+    private val outerValue = "Outer"
+    
+    // 普通嵌套类（不持有外部类引用）
+    class Nested {
+        fun getValue() = "Nested"
+        // 不能访问 outerValue
+    }
+    
+    // 内部类（持有外部类引用）
+    inner class Inner {
+        fun getValue() = "Inner: $outerValue"
+    }
+}
+
+// 使用
+val nested = Outer.Nested()  // 不需要外部类实例
+val inner = Outer().Inner()  // 需要外部类实例
+```
+
+11. 注解类（Annotation Class）
+
+```kotlin
+// 定义注解
+annotation class MyAnnotation(
+    val priority: Int = 0,
+    val tags: Array<String> = []
+)
+
+// 使用
+@MyAnnotation(priority = 1, tags = ["test", "kotlin"])
+class TestClass {
+    @MyAnnotation
+    fun testMethod() {}
+}
+
+// 元注解
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+@Repeatable
+@MustBeDocumented
+annotation class ExperimentalFeature(val version: String)
+```
+
+🎯 特殊类类型
+
+1. 内联类（Inline Class）- 值类
+
+```kotlin
+// Kotlin 1.5+ 使用 value class
+@JvmInline
+value class Password(private val s: String) {
+    // 可以有方法和属性，但只能有一个主构造函数参数
+    init {
+        require(s.length >= 8) { "Password too short" }
+    }
+    
+    fun isValid(): Boolean = s.length >= 8
+    
+    // 内联类在运行时可能被替换为底层类型
+}
+
+// 使用：提高类型安全性，无额外开销
+val password = Password("secret123")
+```
+
+2. 泛型类（Generic Class）
+
+```kotlin
+// 协变（producer，只读）
+class Box<out T>(private val value: T) {
+    fun get(): T = value
+    // 不能有接受T作为参数的方法
+}
+
+// 逆变（consumer，只写）
+interface Consumer<in T> {
+    fun consume(item: T)
+}
+
+// 不变
+class Container<T>(var item: T)
+```
+
+3. 标记接口（Marker Interface）
+
+```kotlin
+// 没有任何成员，仅作为标记
+interface Serializable
+
+class Document : Serializable {
+    // ...
+}
+
+// 类型检查
+fun save(obj: Any) {
+    if (obj is Serializable) {
+        // 保存逻辑
+    }
+}
+```
+
+🔄 类之间的关系
+
+```kotlin
+open class Base {
+    open fun baseMethod() = "Base"
+}
+
+interface MyInterface {
+    fun interfaceMethod(): String
+}
+
+// 单继承，多实现
+class Derived : Base(), MyInterface {
+    override fun baseMethod() = "Derived"
+    override fun interfaceMethod() = "Interface"
+}
+
+// 委托
+interface Repository {
+    fun getData(): String
+}
+
+class RepositoryImpl : Repository {
+    override fun getData() = "Data"
+}
+
+// 类委托（by关键字）
+class EnhancedRepository(repo: Repository) : Repository by repo {
+    // 可以添加额外功能
+    fun enhancedGetData() = "Enhanced: ${getData()}"
+}
+```
+
+📝 类修饰符总结
+
+可见性修饰符
+
+· public（默认）: 到处可见
+· internal: 模块内可见
+· protected: 子类可见
+· private: 类内可见
+
+其他修饰符
+
+· open: 可被继承（默认final）
+· abstract: 抽象类
+· final: 禁止被覆盖（默认）
+· const: 编译时常量
+· lateinit: 延迟初始化
+· override: 覆盖父类成员
+
+🎮 实战示例：综合使用
+
+```kotlin
+// 1. 定义密封类作为状态
+sealed class ViewState {
+    object Loading : ViewState()
+    data class Success(val data: List<String>) : ViewState()
+    data class Error(val exception: Throwable) : ViewState()
+}
+
+// 2. 数据类作为实体
+data class User(
+    val id: Int,
+    val name: String,
+    val email: String
+)
+
+// 3. 接口定义契约
+interface Repository {
+    fun getUsers(): ViewState
+}
+
+// 4. 单例对象作为实现
+object UserRepository : Repository {
+    private val users = listOf(
+        User(1, "Alice", "alice@email.com"),
+        User(2, "Bob", "bob@email.com")
+    )
+    
+    override fun getUsers(): ViewState {
+        return ViewState.Success(users)
+    }
+}
+
+// 5. 使用伴生对象
+class UserViewModel {
+    companion object {
+        const val TAG = "UserViewModel"
+    }
+    
+    fun loadUsers() = UserRepository.getUsers()
+}
+```
+
+💡 选择指南
+
+需求 推荐类型 原因
+数据传输对象 数据类 自动生成常用方法
+状态管理 密封类 保证所有情况被处理
+工具/配置 对象声明 单例，全局访问
+工厂模式 伴生对象 替代静态工厂方法
+回调/监听器 对象表达式 匿名实现
+有限选项 枚举类 类型安全
+基类/模板 抽象类 强制子类实现
+多重继承 接口 Kotlin支持多接口
+类型安全包装 内联类 零开销包装
+
+你是在学习特定场景（Android、后端、算法）吗？ 不同场景下这些类类型的使用侧重不同，我可以提供更针对性的建议！
