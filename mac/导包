@@ -1,0 +1,388 @@
+Kotlin 导包路径详解
+
+Kotlin 的导入路径是基于包的声明和源代码的组织结构，让我详细为你解释：
+
+📁 基本规则：包声明决定导入路径
+
+1. 包声明与目录结构必须对应
+
+```kotlin
+// 文件位置：src/main/kotlin/com/example/myapp/Main.kt
+package com.example.myapp  // ← 包声明必须匹配目录结构
+
+fun main() {
+    println("Hello from com.example.myapp")
+}
+```
+
+🎯 导入路径的几种情况
+
+情况1：标准项目结构（Gradle/Maven）
+
+```
+项目根目录/
+├── src/
+│   ├── main/
+│   │   ├── kotlin/          ← Kotlin源代码根目录
+│   │   │   ├── com/
+│   │   │   │   ├── example/
+│   │   │   │   │   ├── myapp/
+│   │   │   │   │   │   ├── Main.kt          // package com.example.myapp
+│   │   │   │   │   │   ├── model/
+│   │   │   │   │   │   │   ├── User.kt      // package com.example.myapp.model
+│   │   │   │   │   │   └── utils/
+│   │   │   │   │   │       ├── StringUtils.kt // package com.example.myapp.utils
+│   │   │   │   │   └── network/
+│   │   │   │   │       └── Api.kt           // package com.example.network
+│   │   │   │   └── shared/
+│   │   │   │       └── Constants.kt         // package com.shared
+│   │   └── resources/
+│   └── test/
+└── build.gradle.kts
+```
+
+导入示例：
+
+```kotlin
+// 在 Main.kt (com.example.myapp) 中：
+
+// 1. 导入同一包的文件（可选）
+// import com.example.myapp.someFunction  // 可以省略，因为同一包
+
+// 2. 导入子包
+import com.example.myapp.model.User
+import com.example.myapp.utils.StringUtils.formatString
+
+// 3. 导入兄弟包（不同目录，但同一父包）
+import com.example.network.Api
+
+// 4. 导入不同父包
+import com.shared.Constants.APP_NAME
+
+// 5. 导入标准库（从类路径开始）
+import kotlin.collections.*
+import java.util.ArrayList
+```
+
+情况2：默认包（不推荐）
+
+```kotlin
+// 文件位置：src/main/kotlin/Utils.kt
+// 没有 package 声明 → 在默认包中
+
+fun utilityFunction() = "Utility"
+
+// 在其他文件中导入：
+import utilityFunction  // 直接导入函数名
+// 或者使用完全限定名
+```
+
+情况3：模块化项目
+
+```
+项目根目录/
+├── app/                    ← Android应用模块
+│   ├── src/main/kotlin/com/example/app/
+│   └── build.gradle.kts
+├── core/                   ← 核心模块
+│   ├── src/main/kotlin/com/example/core/
+│   └── build.gradle.kts
+├── data/                   ← 数据模块
+│   ├── src/main/kotlin/com/example/data/
+│   └── build.gradle.kts
+└── settings.gradle.kts
+```
+
+模块间导入：
+
+```kotlin
+// 1. 在 app 模块的 build.gradle.kts 中添加依赖：
+dependencies {
+    implementation(project(":core"))
+    implementation(project(":data"))
+}
+
+// 2. 在 app 模块代码中导入：
+import com.example.core.utils.*      // 从 core 模块
+import com.example.data.repository.*  // 从 data 模块
+```
+
+🔍 导入路径的解析过程
+
+编译器如何查找类：
+
+1. 当前包 → 2. 导入列表 → 3. 默认导入 → 4. 类路径
+
+```kotlin
+// 示例：查找 ArrayList
+import java.util.ArrayList  // 1. 显式导入优先
+// import java.util.*      // 2. 通配符导入
+// 3. 如果没有导入，会报错（除非在同一包）
+```
+
+📝 导入路径的写法规则
+
+1. 完全限定名（FQN - Fully Qualified Name）
+
+```kotlin
+// 从源代码根目录开始写
+import com.example.myapp.model.User
+import java.util.*
+import kotlinx.coroutines.CoroutineScope
+```
+
+2. 相对导入（不推荐，且有限制）
+
+```kotlin
+// ❌ Kotlin 不支持真正的相对导入
+// import .model.User  // 错误！
+// import ..network.Api  // 错误！
+```
+
+3. 导入顶级函数和属性
+
+```kotlin
+// 文件：src/main/kotlin/com/example/utils/Extensions.kt
+package com.example.utils
+
+// 顶级扩展函数
+fun String.addExclamation(): String = "$this!"
+
+// 顶级属性
+const val MAX_RETRY_COUNT = 3
+
+// 在其他文件导入：
+import com.example.utils.addExclamation
+import com.example.utils.MAX_RETRY_COUNT
+
+val text = "Hello".addExclamation()
+```
+
+4. 导入嵌套类
+
+```kotlin
+// 文件：src/main/kotlin/com/example/ui/Views.kt
+package com.example.ui
+
+class Container {
+    class NestedView { /*...*/ }
+    inner class InnerView { /*...*/ }
+}
+
+// 导入使用：
+import com.example.ui.Container.NestedView
+// InnerView 需要外部类实例，通常不单独导入
+```
+
+🚀 实际项目中的导入模式
+
+模式1：按功能分包
+
+```
+com/
+├── example/
+│   ├── app/
+│   │   ├── MainActivity.kt
+│   │   └── di/
+│   ├── feature/
+│   │   ├── auth/
+│   │   │   ├── LoginViewModel.kt
+│   │   │   └── AuthRepository.kt
+│   │   └── home/
+│   │       ├── HomeViewModel.kt
+│   │       └── HomeRepository.kt
+│   ├── data/
+│   │   ├── model/
+│   │   ├── local/
+│   │   └── remote/
+│   └── core/
+│       ├── utils/
+│       ├── di/
+│       └── network/
+```
+
+导入示例：
+
+```kotlin
+// 在 LoginViewModel.kt 中：
+package com.example.feature.auth
+
+// 导入同一模块的其他文件
+import com.example.feature.auth.AuthRepository
+import com.example.feature.auth.model.LoginRequest
+
+// 导入数据层
+import com.example.data.model.User
+import com.example.data.repository.UserRepository
+
+// 导入核心模块
+import com.example.core.utils.NetworkUtils
+import com.example.core.di.inject
+
+// 导入第三方库
+import androidx.lifecycle.ViewModel
+import javax.inject.Inject
+```
+
+模式2：按层级分包（Clean Architecture）
+
+```
+com/
+├── example/
+│   ├── presentation/    ← UI层
+│   │   ├── MainActivity.kt
+│   │   └── viewmodel/
+│   ├── domain/          ← 业务逻辑层
+│   │   ├── model/
+│   │   ├── repository/
+│   │   └── usecase/
+│   └── data/           ← 数据层
+│       ├── local/
+│       ├── remote/
+│       └── repository/
+```
+
+导入示例：
+
+```kotlin
+// 在 ViewModel 中（presentation层）：
+package com.example.presentation.viewmodel
+
+import com.example.domain.usecase.GetUserUseCase  // 导入domain层
+import com.example.data.repository.UserRepository // 导入data层
+import androidx.lifecycle.ViewModel
+
+// 只能向上导入，不能向下导入
+// domain层不应该导入 presentation 层的类
+```
+
+⚡ 快速参考：导入路径起点
+
+场景 导入路径起点 示例
+标准库 直接写 import kotlin.collections.*
+JDK 类 直接写 import java.util.ArrayList
+第三方库 从包名开始 import androidx.appcompat.app.AppCompatActivity
+项目代码 从源代码根目录开始 import com.example.myapp.model.User
+同一模块不同包 从共同根开始 import com.example.utils.*
+不同模块 配置依赖后直接导入 import com.example.core.utils.*
+
+🛠️ 工具和技巧
+
+1. IDE 自动导入
+
+· IntelliJ IDEA/Android Studio：
+  · 自动添加缺少的导入：Alt + Enter
+  · 优化导入：Ctrl + Alt + O
+  · 显示导入提示：Ctrl + Space
+
+2. 导入别名（解决命名冲突）
+
+```kotlin
+// 文件1：com/example/ui/Button.kt
+package com.example.ui
+class Button { /*...*/ }
+
+// 文件2：com/example/material/Button.kt  
+package com.example.material
+class Button { /*...*/ }
+
+// 在使用处：
+import com.example.ui.Button
+import com.example.material.Button as MaterialButton
+
+val uiButton = Button()
+val materialButton = MaterialButton()
+```
+
+3. 导入排除（避免通配符过多）
+
+```kotlin
+// ❌ 不推荐的写法（可能导入不需要的类）
+import java.util.*
+import kotlin.collections.*
+
+// ✅ 推荐的写法（明确导入）
+import java.util.ArrayList
+import java.util.HashMap
+import kotlin.collections.mapOf
+import kotlin.collections.listOf
+```
+
+4. 导入顺序规范
+
+```kotlin
+// 建议的导入顺序（Kotlin官方风格）：
+// 1. 标准库（kotlin.）
+import kotlin.math.*
+import kotlin.collections.*
+
+// 2. 第三方库
+import androidx.activity.*
+import com.google.accompanist.*
+
+// 3. 项目内部模块
+import com.example.core.*
+import com.example.domain.*
+
+// 4. 相对导入（同一个父包内）
+// 通常不写，因为可以直接访问
+```
+
+❓ 常见问题解答
+
+Q1：导入时应该从哪个目录开始写？
+
+A：从源代码根目录（src/main/kotlin/）下的第一级目录开始。
+
+如果项目结构是：
+
+```
+src/main/kotlin/com/example/app/Main.kt
+```
+
+那么导入就是：import com.example.app.Main
+
+Q2：为什么我的导入找不到类？
+
+可能原因：
+
+1. 包声明不匹配：检查文件开头的 package 声明
+2. 依赖未添加：第三方库需要在 build.gradle.kts 中添加
+3. 模块依赖未配置：多模块项目需要配置 implementation(project(":module"))
+4. 编译问题：尝试 Build → Rebuild Project
+
+Q3：Kotlin 支持相对导入吗？
+
+不支持。 Kotlin 只支持完全限定名导入，必须从包根开始写。
+
+Q4：如何导入同一目录下的文件？
+
+同一包内的文件可以直接使用，不需要导入：
+
+```kotlin
+// 文件1：com/example/utils/StringUtils.kt
+package com.example.utils
+fun format(str: String) = str.uppercase()
+
+// 文件2：com/example/utils/DateUtils.kt  
+package com.example.utils
+fun test() {
+    format("hello")  // ✅ 直接使用，不需要导入
+}
+```
+
+Q5：导入路径大小写敏感吗？
+
+在大多数系统中是敏感的（Linux/macOS）。Windows 文件系统不敏感，但为了跨平台兼容，应该严格按照大小写书写。
+
+💡 最佳实践建议
+
+1. 保持包结构扁平：避免过深的嵌套（不超过3-4级）
+2. 使用有意义的包名：按功能分包，而不是按类型
+3. 配置好 sourceSets：如果有非标准目录结构
+4. 利用 IDE 功能：让 IDE 管理导入，保持整洁
+5. 定期优化导入：移除未使用的导入
+
+记住：导入路径的本质是告诉编译器在哪里能找到类/函数/属性。只要包声明正确、依赖配置正确、路径书写正确，导入就能正常工作。
+
+你的项目是使用标准 Gradle 结构，还是有特殊的目录组织？我可以根据你的具体项目结构给出更针对性的建议！
