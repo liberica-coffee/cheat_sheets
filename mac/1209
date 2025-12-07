@@ -1,0 +1,50 @@
+太好了 👍
+这里给你一个通用的 Kotlin 函数，可以直接拿来调试和查看 某个 data class 从声明开始到文件结尾，包括前面的注释和注解：
+
+fun extractDataClassBlock(source: String, className: String? = null): String? {
+    // 如果指定了类名，就精确匹配；否则匹配第一个 data class
+    val pattern = if (className != null) {
+        """(?s)(?:\s*//.*\n|\s*/\*.*?\*/\s*|\s*@\w+.*\n)*\s*data\s+class\s+$className.*$"""
+    } else {
+        """(?s)(?:\s*//.*\n|\s*/\*.*?\*/\s*|\s*@\w+.*\n)*\s*data\s+class.*$"""
+    }
+    val regex = Regex(pattern)
+    return regex.find(source)?.value
+}
+
+
+使用示例
+
+val sourceCode = """
+// 这是注释
+/* 多行注释 */
+@Serializable
+data class Person(val name: String, val age: Int)
+
+// 其他代码
+fun main() { println("Hello") }
+"""
+
+val result = extractDataClassBlock(sourceCode, "Person")
+println(result)
+
+
+👉 输出会包含：
+
+• 前面的注释
+• 注解
+• 整个 data class 到文件末尾
+
+
+---
+
+调试技巧
+
+• 如果你想匹配多个 data class，可以用 findAll 而不是 find。
+• 如果文件很大，建议先用 substringAfter("data class") 定位，再用正则精细匹配。
+• 在 IDE 里可以直接打印 result，确认是否包含预期的注释和注解。
+
+
+---
+
+要不要我帮你扩展一下这个函数，让它能 返回多个匹配结果列表，而不是只取第一个？这样你就能一次性提取文件里所有的 data class 片段。
