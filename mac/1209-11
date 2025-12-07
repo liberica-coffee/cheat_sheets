@@ -1,0 +1,79 @@
+在 IntelliJ IDEA 中运行你写的 ExtraProcessing.kts 脚本有几种方式，取决于你是想把它当作独立脚本执行，还是集成到 Gradle 项目里。下面分步骤说明：
+
+---
+
+🛠 方法一：直接运行 `.kts` 脚本
+
+1. 打开脚本文件
+在 IntelliJ 中打开 scripts/ExtraProcessing.kts。
+2. 确认 Kotlin 插件已启用
+IDEA 默认支持 Kotlin，如果没有，请在 Settings → Plugins 中安装 Kotlin 插件。
+3. 运行脚本• 在文件顶部会出现一个绿色的 ▶️ 按钮（Run）。
+• 点击即可运行，IDEA 会使用内置的 Kotlin Script Runner。
+• 输出会显示在 Run Console 中。
+
+
+
+👉 注意：这种方式适合轻量脚本，不需要额外配置 Gradle。
+
+---
+
+🛠 方法二：通过 Gradle 任务执行
+
+如果你在 build.gradle.kts 中定义了类似：
+
+tasks.register("extraProcessing") {
+    group = "custom"
+    description = "Run ExtraProcessing.kts"
+    doLast {
+        exec {
+            commandLine("sh", "scripts/ExtraProcessing.kts", "--input", "data/input", "--output", "data/output")
+        }
+    }
+}
+
+
+那么在 IntelliJ 中：
+
+1. 打开右侧的 Gradle Tool Window。
+2. 展开 Tasks → custom → extraProcessing。
+3. 双击即可运行，结果会显示在 IDEA 的 Gradle Console。
+
+
+---
+
+🛠 方法三：作为独立 Kotlin Application
+
+如果你希望脚本逻辑更复杂，可以把它放到 src/scripts/kotlin 下，并写成一个 main 函数：
+
+fun main(args: Array<String>) {
+    println("Running extra processing...")
+    // 调用你的逻辑
+}
+
+
+然后在 build.gradle.kts 中配置：
+
+application {
+    mainClass.set("com.example.scripts.ExtraProcessingKt")
+}
+
+
+在 IntelliJ 中：
+
+• 右键点击 ExtraProcessing.kt → Run ‘ExtraProcessingKt.main()’。
+• 或者运行 Gradle 任务 runScript。
+
+
+---
+
+✅ 总结
+
+• 轻量脚本 → 直接在 IntelliJ 中打开 .kts 文件，点击运行。
+• 集成到构建流程 → 用 Gradle 任务，在 Gradle Tool Window 中执行。
+• 复杂逻辑 → 写成 main() 应用类，右键运行或用 Gradle Application 插件。
+
+
+---
+
+要不要我帮你写一个 完整的 IntelliJ Run Configuration 示例，让你可以一键运行 ExtraProcessing.kts 并传入参数（比如 --input data/input --output data/output）？
