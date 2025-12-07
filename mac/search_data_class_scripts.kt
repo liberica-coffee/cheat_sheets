@@ -1,3 +1,6 @@
+#!/usr/bin/env kotlin
+
+
 import java.io.File
 
 //fun main(args: Array<String>) {
@@ -190,6 +193,33 @@ java -jar main.jar file1.txt file2.txt file3.txt
 この場合、args[0] に file1.txt、args[1] に file2.txt、args[2] に file3.txt が入ります。
 
 ---
+
+    macOSなどのUnix系環境でKotlinの`.kts`スクリプトを直接実行可能にするための標準的なshebang（スクリプトの1行目に書く実行指定行）は、以下のように書きます。
+
+```bash
+#!/usr/bin/env kotlin
+```
+
+この1行をスクリプトの先頭に書き、実行権限を付ければ、ターミナルから直接スクリプトを実行できます。
+
+例：
+
+```kotlin
+#!/usr/bin/env kotlin
+
+println("Hello, Kotlin script!")
+```
+
+実行手順：
+
+```bash
+chmod +x script.kts
+./script.kts
+```
+
+これでKotlinスクリプトをシェルスクリプトのように扱えます。
+
+
 
 
   
