@@ -1,0 +1,144 @@
+ExtraProcessing.kts 脚本结构说明
+
+一个可独立执行的 Kotlin 脚本通常包含：头部声明、依赖管理、配置区、核心逻辑、入口与退出。下面给出结构化范例与要点。
+
+---
+
+脚本总体结构示例
+
+#!/usr/bin/env kotlin
+@file:DependsOn("org.jetbrains.kotlin:kotlin-main-kts:1.9.24")
+@file:Repository("https://repo1.maven.org/maven2")
+@file:DependsOn("com.fasterxml.jackson.core:jackson-databind:2.17.1")
+@file:DependsOn("org.slf4j:slf4j-simple:2.0.12")
+
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import kotlin.io.path.exists
+import kotlin.io.path.createDirectories
+import kotlin.system.exitProcess
+
+data class Config(
+    val inputDir: Path,
+    val outputDir: Path,
+    val dryRun: Boolean
+)
+
+fun parseArgs(args: List<String>): Config {
+    val map = args
+        .chunked(2)
+        .associate { (k, v) -> k to v }
+
+    val input = Paths.get(map["--input"] ?: System.getenv("EXTRA_INPUT") ?: "data/input")
+    val output = Paths.get(map["--output"] ?: System.getenv("EXTRA_OUTPUT") ?: "data/output")
+    val dryRun = (map["--dry-run"] ?: System.getenv("EXTRA_DRY_RUN") ?: "false").toBooleanStrictOrNull() ?: false
+
+    return Config(input, output, dryRun)
+}
+
+fun ensureDirs(cfg: Config) {
+    if (!cfg.inputDir.exists()) {
+        System.err.println("Input dir not found: ${cfg.inputDir.toAbsolutePath()}")
+        exitProcess(2)
+    }
+    if (!cfg.outputDir.exists()) {
+        cfg.outputDir.createDirectories()
+    }
+}
+
+fun processOne(path: Path, cfg: Config) {
+    val out = cfg.outputDir.resolve(path.fileName.toString().replace(".txt", ".out"))
+    if (cfg.dryRun) {
+        println("[DRY] Would process ${path.fileName} -> ${out.fileName}")
+        return
+    }
+    val content = Files.readString(path)
+    val transformed = content.uppercase() // 示例处理：转大写
+    Files.writeString(out, transformed)
+    println("Processed ${path.fileName} -> ${out.fileName}")
+}
+
+fun run(cfg: Config): Int {
+    ensureDirs(cfg)
+    val stream = Files.list(cfg.inputDir)
+    stream.use {
+        it.filter { p -> p.fileName.toString().endsWith(".txt") }
+            .forEach { p -> processOne(p, cfg) }
+    }
+    return 0
+}
+
+// 入口：解析命令行并执行
+val cfg = parseArgs(args.toList())
+val code = run(cfg)
+exitProcess(code)
+
+
+---
+
+关键组成部分
+
+• Shebang 与可执行性:
+在首行使用 #!/usr/bin/env kotlin 让脚本可直接执行；记得 chmod +x scripts/ExtraProcessing.kts。
+• 依赖与仓库声明:
+使用 @file:DependsOn 和 @file:Repository 在脚本级引入依赖；kotlin-main-kts 允许脚本有顶层语句与简易入口。
+• 配置解析层:• 命令行参数: 示例使用 --input --output --dry-run 键值对。
+• 环境变量回退: 支持 EXTRA_INPUT、EXTRA_OUTPUT、EXTRA_DRY_RUN，便于 CI/本地统一。
+
+• 初始化与校验:• 目录存在性: 缺失即退出并返回明确的退出码。
+• 输出目录创建: 自动创建，避免手工步骤。
+
+• 核心处理逻辑:• 纯函数化单元: processOne 负责单文件处理，易于测试与替换。
+• 迭代与过滤: 通过扩展过滤器仅处理目标后缀（示例为 .txt）。
+
+• 退出码与可观察性:• 标准输出/错误: 成功用 println，错误用 System.err.println。
+• 退出码: 正常返回 0，校验失败返回非零，利于 CI 判定。
+
+
+
+---
+
+目录与执行建议
+
+• 建议目录结构:• scripts/ExtraProcessing.kts: 主脚本
+• data/input: 输入数据（可用 .gitignore 管理）
+• data/output: 输出数据（自动创建）
+
+• 执行示例:• ./scripts/ExtraProcessing.kts --input data/input --output data/output --dry-run true
+• 无参数时会使用默认目录或环境变量。
+
+• 跨平台提示:• macOS/Linux: 直接 shebang 执行。
+• Windows: 使用 kotlinc -script scripts/ExtraProcessing.kts 或通过 Gradle JavaExec 任务间接执行。
+
+
+
+---
+
+与 Spring Boot/Gradle 的无侵入协作
+
+• Gradle 任务封装（可选）： 在 build.gradle.kts 中添加一个包装任务，只调用外部脚本，不影响 Spring Boot 运行：tasks.register("extraProcessing") {
+    group = "custom"
+    description = "Run ExtraProcessing.kts"
+    doLast {
+        exec {
+            commandLine("sh", "scripts/ExtraProcessing.kts", "--input", "data/input", "--output", "data/output")
+        }
+    }
+}
+通过 ./gradlew extraProcessing 触发，脚本仍保持独立。
+• 隔离原则:• 不引入 Spring Boot 依赖: 脚本仅使用自己声明的依赖。
+• 不访问应用上下文: 不加载 ApplicationContext，避免耦合。
+• 不改动主模块构建流程: 构建脚本任务与应用任务分组区分，互不影响。
+
+
+
+---
+
+可扩展点
+
+• 日志与结构化输出: 接入 slf4j-simple 或换为 logback；输出 JSON 便于流水线采集。
+• 并行与批量: 使用 Files.list(...).parallel() 或 Kotlin 协程进行并发处理，并注意 I/O 限流。
+• 错误策略: 为 processOne 增加异常捕获与重试（指数回退），并记录失败清单。
+• 配置文件: 允许读取 scripts/config.yaml 或 .env，与参数合并。
+• 测试: 将核心函数迁移到 src/scripts/kotlin 模块中，并用 Gradle JavaExec 执行以便单元测试。
