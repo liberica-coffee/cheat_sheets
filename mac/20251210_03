@@ -104,4 +104,99 @@ flowchart TD
 
 要不要我再帮你整理一份 分层架构的最佳实践清单（比如什么时候该引入 Cache 层、什么时候该用 Event 层），让你在团队里做决策时更有依据？
 
+iiiii
+
+好问题 Arron 👍
+在 Spring Boot + Gradle + Kotlin 的分层架构里，各层之间的通信方式其实就是 依赖关系和调用链。我帮你分层梳理一下：
+
+---
+
+🏗️ 各层通信方式
+
+1. Controller → Service
+
+• 方式：直接调用 Service 的方法
+• 实现：通过 @Autowired 或构造函数注入 Service Bean
+• 场景：Controller 接收 HTTP 请求，把参数交给 Service 处理业务逻辑
+
+
+@RestController
+class UserController(private val userService: UserService) {
+    @GetMapping("/users/{id}")
+    fun getUser(@PathVariable id: Long) = userService.findUser(id)
+}
+
+
+---
+
+2. Service → Repository
+
+• 方式：直接调用 Repository 接口方法
+• 实现：Spring Data JPA/MyBatis，Repository 是接口，Spring 自动生成实现
+• 场景：Service 层执行业务逻辑时需要访问数据库
+
+
+@Service
+class UserService(private val userRepository: UserRepository) {
+    fun findUser(id: Long): User? = userRepository.findById(id).orElse(null)
+}
+
+
+---
+
+3. Repository → Database
+
+• 方式：ORM 框架（JPA/Hibernate/MyBatis）或原生 SQL
+• 实现：Repository 层通过接口定义查询，Spring Data 自动实现
+• 场景：数据持久化与查询
+
+
+---
+
+4. Service ↔ Domain/Model
+
+• 方式：直接操作 Kotlin data class 或实体对象
+• 实现：Service 接收/返回 Domain 对象，或转换成 DTO
+• 场景：业务逻辑处理时操作领域模型
+
+
+---
+
+5. DTO/Mapper 层通信
+
+• 方式：对象转换（Entity ↔ DTO）
+• 实现：MapStruct、ModelMapper、Kotlin 扩展函数
+• 场景：Controller 与 Service 之间传输数据时避免直接暴露实体
+
+
+---
+
+6. 跨层通信（不常用但有价值）
+
+• Event 层：通过 Spring Event 或消息队列（Kafka、RabbitMQ）实现异步通信
+• Aspect 层：通过 AOP 拦截方法调用，实现日志、监控、权限校验
+• Infra 层：通过 API Client、消息队列、文件系统与外部系统交互
+
+
+---
+
+🔑 总结
+
+• 常用通信：Controller → Service → Repository → Database
+• 辅助通信：DTO/Mapper 转换、Exception 层统一处理、Security 层拦截请求
+• 扩展通信：事件驱动（Event）、横切逻辑（Aspect）、外部系统交互（Infra）
+
+
+---
+
+💡 可以把它理解为：
+
+• 纵向调用链：Controller → Service → Repository → Database
+• 横向扩展链：Event、Aspect、Infra、Cache 等在不同层插入或监听
+
+
+---
+
+要不要我帮你画一个 层间通信流程图，把纵向调用链和横向扩展链直观地展示出来？
+
 
