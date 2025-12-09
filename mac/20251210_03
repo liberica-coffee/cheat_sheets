@@ -1,1 +1,55 @@
-jhhs
+好问题 Arron 👍
+Spring Boot + Gradle + Kotlin 的项目架构通常是 分层式架构（Layered Architecture），结合 Kotlin 的简洁语法和 Gradle 的构建灵活性，常见的层次和一些不常用的扩展层如下：
+
+---
+
+🏗️ 常用的核心层
+
+层级	作用	常见内容	
+Controller 层	接收 HTTP 请求，返回响应	REST API、WebSocket、GraphQL 接口	
+Service 层	业务逻辑处理	事务管理、业务规则、调用 Repository	
+Repository 层	数据访问层	JPA、Spring Data、MyBatis、SQL/NoSQL 查询	
+Domain/Model 层	核心业务对象	Kotlin data class、实体类、DTO、VO	
+Configuration 层	框架和应用配置	Spring Boot 配置类、Bean 定义、Security 配置	
+
+
+---
+
+🔧 常用的辅助层
+
+层级	作用	常见内容	
+DTO/Mapper 层	数据传输与转换	DTO ↔ Entity 映射（MapStruct、Kotlin 扩展函数）	
+Exception 层	错误处理	全局异常处理器 (@ControllerAdvice)	
+Security 层	权限与认证	Spring Security、JWT、OAuth2	
+Test 层	单元测试与集成测试	JUnit5、MockK、Spring Boot Test	
+
+
+---
+
+📦 不常用但有价值的扩展层
+
+层级	作用	使用场景	
+Infra 层	外部系统交互	消息队列 (Kafka, RabbitMQ)、外部 API 调用、文件存储	
+Cache 层	提升性能	Redis、Caffeine 缓存策略	
+Event 层	事件驱动架构	Spring Event、Domain Event、CQRS/Event Sourcing	
+Aspect 层	横切逻辑	AOP 日志、性能监控、审计	
+Pipeline/CI 层	构建与部署	Gradle 脚本、CI/CD 配置、Docker/K8s 集成	
+Utility 层	通用工具类	Kotlin 扩展函数、工具方法库	
+
+
+---
+
+⚡ 总结
+
+• 常用层：Controller、Service、Repository、Domain/Model、Configuration
+• 辅助层：DTO/Mapper、Exception、Security、Test
+• 不常用但有价值的扩展层：Infra、Cache、Event、Aspect、Pipeline、Utility
+
+
+这种分层架构在 Kotlin + Spring Boot 项目里非常自然，尤其结合 Gradle 的模块化，可以把 常用层放在核心模块，把 不常用层拆成独立子模块（如 infra, cache, event），方便团队协作和扩展。
+
+---
+
+要不要我帮你画一个 Spring Boot + Gradle + Kotlin 分层架构图，把这些层次直观地展示出来，方便你在团队里分享？
+
+
