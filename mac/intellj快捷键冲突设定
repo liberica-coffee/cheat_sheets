@@ -1,0 +1,37 @@
+#double shift 冲突
+
+在 macOS 上，IntelliJ IDEA 的 Double Shift (⇧⇧) 全局搜索有时会和系统或其他应用的快捷键冲突。常见的情况是：
+
+• macOS 自带快捷键：例如 Spotlight (⌘ + Space) 或输入法切换，可能会拦截某些组合。
+• 第三方工具：如 Alfred、Raycast、BetterTouchTool 等，也可能绑定了双击 Shift。
+• IDE 内部冲突：如果你在 Keymap 中改过快捷键，Double Shift 可能被覆盖。
+
+
+---
+
+🔧 解决方法
+
+1. 检查 IntelliJ Keymap• 打开 Preferences (⌘ + ,) → Keymap
+• 搜索 “Search Everywhere”
+• 确认它绑定的是 Double Shift，如果冲突，可以改成其他组合（例如 ⌘ + ⇧ + A）。
+
+2. 关闭系统或第三方工具的双击 Shift 功能• 如果你用输入法或工具绑定了双击 Shift，建议改掉或禁用。
+
+3. 自定义替代快捷键• 在 Keymap 中给 “Search Everywhere” 设置一个新的快捷键，比如：• ⌘ + ⇧ + O（常见替代）
+• ⌘ + ⇧ + A（动作搜索）
+
+
+
+
+---
+
+💡 小技巧
+
+• 如果你经常用 Search Everywhere，可以直接用 ⌘ + O / ⌘ + ⇧ + O / ⌘ + ⇧ + ⌥ + N 来分别查类、文件、符号，效率更高。
+• Double Shift 只是一个“万能入口”，但在专业工作流里，分开使用这些更精确的查找快捷键往往更快。
+
+
+要不要我帮你整理一份 常见查找快捷键的替代方案表，这样即使 Double Shift 被占用，你也能快速切换？
+
+
+
