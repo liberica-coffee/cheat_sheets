@@ -52,4 +52,56 @@ Utility 层	通用工具类	Kotlin 扩展函数、工具方法库
 
 要不要我帮你画一个 Spring Boot + Gradle + Kotlin 分层架构图，把这些层次直观地展示出来，方便你在团队里分享？
 
+uuuu
+
+
+太好了 Arron 🙌
+这里我为你整理了一份 Spring Boot + Gradle + Kotlin 分层架构的视觉化示意图（文字版），方便你在团队里直观展示：
+
+---
+
+🏗️ 架构层次示意图
+
+flowchart TD
+    A[Spring Boot + Gradle + Kotlin 架构] --> B[常用核心层]
+    A --> C[辅助层]
+    A --> D[扩展层]
+
+    %% 常用核心层
+    B --> B1[Controller 层\n接收请求/返回响应]
+    B --> B2[Service 层\n业务逻辑/事务管理]
+    B --> B3[Repository 层\n数据访问/JPA/SQL]
+    B --> B4[Domain/Model 层\n实体类/DTO/VO]
+    B --> B5[Configuration 层\n配置/Bean 定义]
+
+    %% 辅助层
+    C --> C1[DTO/Mapper 层\n数据转换]
+    C --> C2[Exception 层\n全局异常处理]
+    C --> C3[Security 层\n认证与授权]
+    C --> C4[Test 层\n单元/集成测试]
+
+    %% 扩展层
+    D --> D1[Infra 层\n外部系统交互]
+    D --> D2[Cache 层\n性能优化]
+    D --> D3[Event 层\n事件驱动/CQRS]
+    D --> D4[Aspect 层\n日志/监控/AOP]
+    D --> D5[Pipeline/CI 层\n构建与部署]
+    D --> D6[Utility 层\n工具类/扩展函数]
+
+
+---
+
+🔑 使用策略
+
+• 常用核心层：Controller、Service、Repository、Domain/Model、Configuration → 几乎所有项目都会用到。
+• 辅助层：DTO/Mapper、Exception、Security、Test → 提升健壮性和安全性。
+• 扩展层：Infra、Cache、Event、Aspect、Pipeline、Utility → 在复杂场景或大规模团队协作时才会引入。
+
+
+---
+
+💡 这样分层后，你可以用 Gradle 的 多模块构建 来把常用层和扩展层拆分成独立模块，既保持核心简洁，又能灵活扩展。
+
+要不要我再帮你整理一份 分层架构的最佳实践清单（比如什么时候该引入 Cache 层、什么时候该用 Event 层），让你在团队里做决策时更有依据？
+
 
