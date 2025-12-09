@@ -199,4 +199,161 @@ class UserService(private val userRepository: UserRepository) {
 
 要不要我帮你画一个 层间通信流程图，把纵向调用链和横向扩展链直观地展示出来？
 
+kkjj
+
+好的 Arron 👍
+我来给你一个 具体的分层通信实例，用 Spring Boot + Gradle + Kotlin 展示从 Controller → Service → Repository → Database 的完整调用链，并补充一些横向扩展层的例子。
+
+---
+
+🏗️ 示例：用户查询流程
+
+1. Domain/Model 层
+
+定义核心业务对象（Kotlin data class）：
+
+@Entity
+data class User(
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long = 0,
+    val name: String,
+    val email: String
+)
+
+
+---
+
+2. Repository 层
+
+数据访问接口，Spring Data JPA 自动实现：
+
+interface UserRepository : JpaRepository<User, Long> {
+    fun findByEmail(email: String): User?
+}
+
+
+---
+
+3. Service 层
+
+业务逻辑处理，调用 Repository：
+
+@Service
+class UserService(private val userRepository: UserRepository) {
+
+    fun getUserById(id: Long): User? {
+        return userRepository.findById(id).orElse(null)
+    }
+
+    fun getUserByEmail(email: String): User? {
+        return userRepository.findByEmail(email)
+    }
+}
+
+
+---
+
+4. Controller 层
+
+接收 HTTP 请求，调用 Service：
+
+@RestController
+@RequestMapping("/users")
+class UserController(private val userService: UserService) {
+
+    @GetMapping("/{id}")
+    fun getUser(@PathVariable id: Long): ResponseEntity<User?> {
+        val user = userService.getUserById(id)
+        return ResponseEntity.ok(user)
+    }
+
+    @GetMapping("/search")
+    fun getUserByEmail(@RequestParam email: String): ResponseEntity<User?> {
+        val user = userService.getUserByEmail(email)
+        return ResponseEntity.ok(user)
+    }
+}
+
+
+---
+
+🔧 横向扩展实例
+
+5. DTO/Mapper 层
+
+避免直接暴露实体，转换为 DTO：
+
+data class UserDTO(val id: Long, val name: String)
+
+fun User.toDTO() = UserDTO(id = this.id, name = this.name)
+
+
+Controller 使用 DTO：
+
+@GetMapping("/{id}")
+fun getUser(@PathVariable id: Long): ResponseEntity<UserDTO?> {
+    val user = userService.getUserById(id)
+    return ResponseEntity.ok(user?.toDTO())
+}
+
+
+---
+
+6. Event 层
+
+异步事件通信（例如用户注册后发送欢迎邮件）：
+
+class UserRegisteredEvent(val user: User)
+
+@Service
+class RegistrationService(private val publisher: ApplicationEventPublisher) {
+    fun register(user: User) {
+        // 保存用户
+        publisher.publishEvent(UserRegisteredEvent(user))
+    }
+}
+
+@Component
+class WelcomeEmailListener {
+    @EventListener
+    fun handleUserRegistered(event: UserRegisteredEvent) {
+        println("Send welcome email to ${event.user.email}")
+    }
+}
+
+
+---
+
+7. Aspect 层
+
+横切逻辑（日志记录）：
+
+@Aspect
+@Component
+class LoggingAspect {
+    @Around("execution(* com.example.service.*.*(..))")
+    fun logExecution(joinPoint: ProceedingJoinPoint): Any? {
+        println("Calling: ${joinPoint.signature}")
+        val result = joinPoint.proceed()
+        println("Result: $result")
+        return result
+    }
+}
+
+
+---
+
+⚡ 总结
+
+• 纵向通信链：Controller → Service → Repository → Database
+• 横向扩展链：DTO/Mapper（数据转换）、Event（异步事件）、Aspect（日志/监控）、Infra（外部系统交互）
+
+
+这种架构既能保持核心清晰，又能通过扩展层增强灵活性和可维护性。
+
+---
+
+要不要我帮你把这个 纵向调用链 + 横向扩展链 绘制成一个 架构通信流程图，让你在团队里更直观地展示？
+
+
 
