@@ -37,3 +37,67 @@ grpcurl -plaintext \
 
 要不要我帮你写一个 对照表，把「未登录」「已登录」「不同用户」的 grpcurl 命令整理成一份快速参考清单？
 
+
+session里面有用户登陆信息的话，怎么在grpc中携带和传递用户信息
+
+在 gRPC 里，session 或用户登录信息通常不会像传统 Web 那样靠 cookie 自动传递，而是通过 metadata（元数据） 或 token 来携带。你可以把用户的登录状态、ID、角色等信息放在 metadata 里，由服务端拦截器或中间件统一解析。下面分层说明：
+
+---
+
+🔑 常见做法：使用 Metadata 携带用户信息
+
+• 客户端调用时加 headergrpcurl -plaintext \
+  -H "authorization: Bearer <ACCESS_TOKEN>" \
+  -H "x-user-id: 12345" \
+  -H "x-user-role: admin" \
+  localhost:50051 my.service.UserService/GetProfile
+• authorization：常见的登录 token（JWT、OAuth2 等）。
+• x-user-id：用户 ID。
+• x-user-role：角色或权限信息。
+
+• 服务端拦截器解析
+在服务端写一个 UnaryInterceptor 或 StreamInterceptor，统一读取 metadata：class AuthInterceptor : ServerInterceptor {
+    override fun <ReqT, RespT> interceptCall(
+        call: ServerCall<ReqT, RespT>,
+        headers: Metadata,
+        next: ServerCallHandler<ReqT, RespT>
+    ): ServerCall.Listener<ReqT> {
+        val token = headers.get(Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER))
+        val userId = headers.get(Metadata.Key.of("x-user-id", Metadata.ASCII_STRING_MARSHALLER))
+        // 验证 token，解析用户信息，存入 Context
+        val ctx = Context.current().withValue(USER_ID_CTX_KEY, userId)
+        return Contexts.interceptCall(ctx, call, headers, next)
+    }
+}
+
+
+
+---
+
+📦 在 Context 中传递用户信息
+
+• gRPC 提供 Context，可以在拦截器里把解析好的用户信息放进去。
+• 在具体的 service 方法里再取出：val userId = USER_ID_CTX_KEY.get()
+
+
+
+这样就实现了「session 内有用户登录信息 → 在 gRPC 调用中携带 → 服务端解析并传递到业务逻辑」。
+
+---
+
+⚖️ 对比：Session vs Token
+
+方式	特点	在 gRPC 中的实现	
+Session（传统 cookie）	依赖服务端保存状态，客户端只传 session ID	不常用，通常改为 token	
+Token（JWT/OAuth2）	无状态，客户端每次调用都带 token	常见做法，用 metadata header 携带	
+
+
+---
+
+✅ 总结：
+在 gRPC 中，用户登录信息要通过 metadata header 携带，服务端用拦截器解析并放入 Context，业务逻辑就能获取到用户信息。这样既能模拟「有 session」的状态，也能保持 gRPC 的无状态特性。
+
+要不要我帮你写一个 完整的 Kotlin + Spring Boot gRPC 示例，展示客户端如何传 metadata，服务端如何拦截并解析用户信息？
+
+
+
