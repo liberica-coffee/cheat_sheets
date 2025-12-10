@@ -1,1 +1,39 @@
-iujb
+好问题 👍。你想用 grpcurl 来模拟/测试服务端的「有 session」和「无 session」两种调用状态，并且区分用户是否已登录。这里的关键点在于：
+
+1. grpcurl 本身不维护 session• grpcurl 是一个命令行工具，用来直接调用 gRPC 方法。它不会像浏览器或客户端 SDK 那样自动保存 cookie 或 session。
+• 所谓「有/无 session」其实就是你在请求头里是否带上认证信息（例如 token）。
+
+2. 常见做法：用 Metadata 模拟 session
+在 gRPC 中，session 或登录状态通常通过 metadata header（比如 authorization）传递。• 无 session / 未登录：直接调用，不带任何 header。grpcurl -plaintext localhost:50051 my.service.UserService/GetProfile
+
+• 有 session / 已登录：在调用时加上认证 token。grpcurl -plaintext \
+  -H "authorization: Bearer <ACCESS_TOKEN>" \
+  localhost:50051 my.service.UserService/GetProfile
+
+
+3. 区分用户是否登录• 如果服务端要求登录才能访问某些方法，那么未带 token 的调用会返回 Unauthenticated 错误。
+• 如果带了合法 token，就能成功返回数据。
+• 你可以通过准备不同的命令来测试这两种情况。
+
+4. 扩展：模拟不同用户• 只要换不同的 token，就能模拟不同用户的 session。
+• 例如：grpcurl -plaintext \
+  -H "authorization: Bearer userA_token" \
+  localhost:50051 my.service.UserService/GetProfile
+grpcurl -plaintext \
+  -H "authorization: Bearer userB_token" \
+  localhost:50051 my.service.UserService/GetProfile
+
+
+
+
+---
+
+✅ 总结：
+
+• grpcurl 没有内建 session 概念。
+• 「有/无 session」就是是否在命令里加上 -H "authorization: Bearer <token>"。
+• 用户是否登录由服务端验证 token 决定。
+
+
+要不要我帮你写一个 对照表，把「未登录」「已登录」「不同用户」的 grpcurl 命令整理成一份快速参考清单？
+
