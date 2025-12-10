@@ -99,5 +99,94 @@ Token（JWT/OAuth2）	无状态，客户端每次调用都带 token	常见做法
 
 要不要我帮你写一个 完整的 Kotlin + Spring Boot gRPC 示例，展示客户端如何传 metadata，服务端如何拦截并解析用户信息？
 
+好的，我们来具体看一下 gRPC 的 Context 部分如何实现用户信息传递。核心思路是：
+
+• 在 拦截器里解析 metadata（比如 token、userId）。
+• 把解析结果放到 Context。
+• 在业务方法里通过 Context 取出用户信息。
+
+
+下面给你一个完整的 Kotlin + gRPC 示例：
+
+---
+
+1️⃣ 定义 Context Key
+
+// 定义一个 Context Key，用来存储用户 ID
+val USER_ID_CTX_KEY: Context.Key<String> = Context.key("userId")
+
+
+---
+
+2️⃣ 编写拦截器
+
+class AuthInterceptor : ServerInterceptor {
+    override fun <ReqT, RespT> interceptCall(
+        call: ServerCall<ReqT, RespT>,
+        headers: Metadata,
+        next: ServerCallHandler<ReqT, RespT>
+    ): ServerCall.Listener<ReqT> {
+
+        // 从 metadata 中取出用户信息
+        val token = headers.get(Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER))
+        val userId = headers.get(Metadata.Key.of("x-user-id", Metadata.ASCII_STRING_MARSHALLER))
+
+        // 这里可以做 token 验证，或者查数据库
+        val verifiedUserId = if (token != null && userId != null) userId else "anonymous"
+
+        // 把用户信息放入 Context
+        val ctx = Context.current().withValue(USER_ID_CTX_KEY, verifiedUserId)
+
+        // 用新的 Context 继续调用链
+        return Contexts.interceptCall(ctx, call, headers, next)
+    }
+}
+
+
+---
+
+3️⃣ 在 Service 方法里取出用户信息
+
+class UserServiceImpl : UserServiceGrpc.UserServiceImplBase() {
+    override fun getProfile(request: GetProfileRequest, responseObserver: StreamObserver<GetProfileResponse>) {
+        // 从 Context 中取出用户 ID
+        val userId = USER_ID_CTX_KEY.get()
+
+        val response = GetProfileResponse.newBuilder()
+            .setUserId(userId)
+            .setMessage("Hello, user $userId")
+            .build()
+
+        responseObserver.onNext(response)
+        responseObserver.onCompleted()
+    }
+}
+
+
+---
+
+4️⃣ 客户端调用示例
+
+• 未登录（无 session）grpcurl -plaintext localhost:50051 my.service.UserService/GetProfile
+→ 服务端会返回 userId = anonymous
+• 已登录（有 session）grpcurl -plaintext \
+  -H "authorization: Bearer abc123" \
+  -H "x-user-id: 42" \
+  localhost:50051 my.service.UserService/GetProfile
+→ 服务端会返回 userId = 42
+
+
+---
+
+✅ 总结：
+
+• Context 是 gRPC 内部传递用户信息的关键。
+• 在拦截器里解析 metadata → 存入 Context → 在业务方法里取出。
+• 这样就能模拟「有 session / 无 session」和「用户是否登录」的状态。
+
+
+要不要我帮你扩展一下，把 角色/权限信息（比如 x-user-role: admin）也放进 Context，并展示如何在业务逻辑里做权限判断？
+
+
 
 
