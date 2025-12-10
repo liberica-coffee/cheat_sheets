@@ -187,6 +187,9 @@ class UserServiceImpl : UserServiceGrpc.UserServiceImplBase() {
 
 要不要我帮你扩展一下，把 角色/权限信息（比如 x-user-role: admin）也放进 Context，并展示如何在业务逻辑里做权限判断？
 
+用户在登陆页面登录了的信息，怎样通过context或者metadata 传递，然后在api端登录
+
+
 
 
 
