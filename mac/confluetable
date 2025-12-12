@@ -1,0 +1,60 @@
+完全可以 👍。你可以自己写一个浏览器插件（Chrome/Edge 扩展），来自动调整 Confluence 页面上的表格列宽。核心思路是：扩展在页面加载时注入一段 JavaScript/CSS，遍历所有表格并统一设置列宽。
+
+---
+
+🚀 基本步骤
+
+1. 创建扩展目录• 建一个文件夹，例如 confluence-table-fix/。
+
+2. 编写 manifest.json{
+  "manifest_version": 3,
+  "name": "Confluence Table Auto Width",
+  "version": "1.0",
+  "description": "自动调整 Confluence 表格列宽",
+  "permissions": ["scripting", "activeTab"],
+  "content_scripts": [
+    {
+      "matches": ["https://your-confluence-domain/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
+
+3. 编写 content.jsfunction adjustTables() {
+  const tables = document.querySelectorAll("table.confluenceTable");
+  tables.forEach(table => {
+    const cols = table.querySelectorAll("tr:first-child td, tr:first-child th");
+    const colCount = cols.length;
+    const widthPercent = 100 / colCount;
+
+    cols.forEach((col, i) => {
+      table.querySelectorAll(`tr td:nth-child(${i+1}), tr th:nth-child(${i+1})`)
+           .forEach(cell => {
+             cell.style.width = widthPercent + "%";
+             cell.style.wordBreak = "break-word"; // 避免文字撑开
+           });
+    });
+  });
+}
+
+// 页面加载后执行
+window.addEventListener("load", adjustTables);
+
+4. 加载扩展• 打开 Chrome/Edge → 扩展程序 → 加载已解压的扩展程序 → 选择你的文件夹。
+
+
+
+---
+
+⚖️ 注意事项
+
+• 如果 Confluence 页面是动态加载的（SPA），可能需要用 MutationObserver 监听 DOM 变化，实时调整表格。
+• 你可以在 manifest.json 的 matches 里写成 *://*.atlassian.net/*，这样适配所有 Confluence Cloud 页面。
+• 如果想更灵活，可以做一个 右键菜单按钮，点击时才执行调整。
+
+
+---
+
+要不要我帮你写一个 升级版脚本，支持动态加载（MutationObserver），这样即使你在 Confluence 页面里切换标签或展开内容，表格也会自动调整？
+
+
