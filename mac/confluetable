@@ -145,3 +145,140 @@ observer.observe(document.body, {
 
 要不要我再帮你加一个 配置选项（比如固定宽度 vs 平均分配），让你在插件里自由切换？
 
+
+太好了 🙌，那我们就把插件升级一下，加上 配置选项，让你可以自由选择「固定宽度」还是「平均分配」。这样你在不同场景下都能灵活调整。
+
+---
+
+📂 文件结构
+
+confluence-table-fix/
+ ├─ manifest.json
+ ├─ content.js
+ └─ options.html
+ └─ options.js
+
+
+---
+
+📜 manifest.json
+
+{
+  "manifest_version": 3,
+  "name": "Confluence Table Auto Width",
+  "version": "1.2",
+  "description": "自动调整 Confluence 表格列宽（支持动态加载 + 配置选项）",
+  "permissions": ["storage"],
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": ["https://*.atlassian.net/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
+
+
+---
+
+📜 options.html
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Confluence Table Auto Width 设置</title>
+</head>
+<body>
+  <h2>表格列宽设置</h2>
+  <label>
+    <input type="radio" name="mode" value="fixed"> 固定宽度 (150px)
+  </label><br>
+  <label>
+    <input type="radio" name="mode" value="average"> 平均分配 (100% / 列数)
+  </label><br>
+  <button id="save">保存</button>
+
+  <script src="options.js"></script>
+</body>
+</html>
+
+
+---
+
+📜 options.js
+
+document.addEventListener("DOMContentLoaded", () => {
+  chrome.storage.sync.get("mode", data => {
+    if (data.mode) {
+      document.querySelector(`input[value=${data.mode}]`).checked = true;
+    }
+  });
+
+  document.getElementById("save").addEventListener("click", () => {
+    const mode = document.querySelector("input[name=mode]:checked").value;
+    chrome.storage.sync.set({ mode });
+    alert("设置已保存！");
+  });
+});
+
+
+---
+
+📜 content.js
+
+function adjustTables(mode) {
+  const tables = document.querySelectorAll("table.confluenceTable");
+  tables.forEach(table => {
+    const firstRow = table.querySelector("tr");
+    if (!firstRow) return;
+
+    const cols = firstRow.querySelectorAll("td, th");
+    const colCount = cols.length;
+    if (colCount === 0) return;
+
+    cols.forEach((col, i) => {
+      table.querySelectorAll(`tr td:nth-child(${i+1}), tr th:nth-child(${i+1})`)
+        .forEach(cell => {
+          if (mode === "fixed") {
+            cell.style.width = "150px";
+          } else {
+            cell.style.width = (100 / colCount) + "%";
+          }
+          cell.style.wordBreak = "break-word";
+        });
+    });
+  });
+}
+
+function init() {
+  chrome.storage.sync.get("mode", data => {
+    const mode = data.mode || "average"; // 默认平均分配
+    adjustTables(mode);
+  });
+}
+
+// 初次加载执行
+window.addEventListener("load", init);
+
+// 监听 DOM 变化（动态加载）
+const observer = new MutationObserver(init);
+observer.observe(document.body, { childList: true, subtree: true });
+
+
+---
+
+⚙️ 使用方法
+
+1. 在 Chrome/Edge 扩展里加载这个文件夹。
+2. 打开 Confluence 页面，表格会自动调整。
+3. 在扩展的 选项页里选择「固定宽度」或「平均分配」，保存后立即生效。
+
+
+---
+
+这样你就有一个 可配置的自动化插件，既能保证表格美观，又能灵活切换模式。
+
+要不要我再帮你加一个 快捷键触发功能（比如按下 Ctrl+Shift+T 就重新调整当前页面表格），方便你手动刷新布局？
+
+
