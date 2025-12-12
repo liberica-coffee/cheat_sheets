@@ -58,3 +58,90 @@ window.addEventListener("load", adjustTables);
 要不要我帮你写一个 升级版脚本，支持动态加载（MutationObserver），这样即使你在 Confluence 页面里切换标签或展开内容，表格也会自动调整？
 
 
+
+好的，那我给你一个 升级版浏览器插件脚本，支持 动态加载（MutationObserver），这样即使 Confluence 页面里切换标签或展开内容，表格也会自动调整列宽。
+
+---
+
+📂 文件结构
+
+confluence-table-fix/
+ ├─ manifest.json
+ └─ content.js
+
+
+---
+
+📜 manifest.json
+
+{
+  "manifest_version": 3,
+  "name": "Confluence Table Auto Width",
+  "version": "1.1",
+  "description": "自动调整 Confluence 表格列宽（支持动态加载）",
+  "permissions": ["scripting", "activeTab"],
+  "content_scripts": [
+    {
+      "matches": ["https://*.atlassian.net/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
+
+
+---
+
+📜 content.js
+
+function adjustTables() {
+  const tables = document.querySelectorAll("table.confluenceTable");
+  tables.forEach(table => {
+    const firstRow = table.querySelector("tr");
+    if (!firstRow) return;
+
+    const cols = firstRow.querySelectorAll("td, th");
+    const colCount = cols.length;
+    if (colCount === 0) return;
+
+    const widthPercent = 100 / colCount;
+
+    cols.forEach((col, i) => {
+      table.querySelectorAll(`tr td:nth-child(${i+1}), tr th:nth-child(${i+1})`)
+        .forEach(cell => {
+          cell.style.width = widthPercent + "%";
+          cell.style.wordBreak = "break-word"; // 避免文字撑开
+        });
+    });
+  });
+}
+
+// 初次加载执行
+window.addEventListener("load", adjustTables);
+
+// 监听 DOM 变化（动态加载）
+const observer = new MutationObserver(() => {
+  adjustTables();
+});
+
+observer.observe(document.body, {
+  childList: true,
+  subtree: true
+});
+
+
+---
+
+⚙️ 使用方法
+
+1. 打开 Chrome/Edge → 扩展程序 → 加载已解压的扩展程序 → 选择 confluence-table-fix/ 文件夹。
+2. 打开 Confluence 页面，表格会自动调整列宽。
+3. 如果页面是 SPA（单页应用），MutationObserver 会自动在内容更新时重新调整。
+
+
+---
+
+这样你就有一个 自动化插件，能保证所有 Confluence 表格列宽统一，不管是初次加载还是动态展开。
+
+要不要我再帮你加一个 配置选项（比如固定宽度 vs 平均分配），让你在插件里自由切换？
+
