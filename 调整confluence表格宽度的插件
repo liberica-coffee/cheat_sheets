@@ -1,0 +1,72 @@
+你遇到的问题其实是 DOM 结构和选择器的问题：虽然能拿到 <table>，但在 Confluence 的页面里，表格往往有嵌套的样式或特殊的 class，导致直接用 querySelectorAll("tr td") 不稳定。要精确调整列宽，推荐用 <colgroup> 来控制，而不是逐个 <td>。
+
+---
+
+✅ 推荐做法：使用 `<colgroup>` 控制列宽
+
+function adjustTableColumns(table, mode = "average", fixedWidth = 150) {
+  const firstRow = table.querySelector("tr");
+  if (!firstRow) return;
+
+  const cols = firstRow.querySelectorAll("td, th");
+  const colCount = cols.length;
+  if (colCount === 0) return;
+
+  // 如果没有 colgroup，先创建
+  let colgroup = table.querySelector("colgroup");
+  if (!colgroup) {
+    colgroup = document.createElement("colgroup");
+    for (let i = 0; i < colCount; i++) {
+      const col = document.createElement("col");
+      colgroup.appendChild(col);
+    }
+    table.insertBefore(colgroup, table.firstChild);
+  }
+
+  // 设置宽度
+  const colElements = colgroup.querySelectorAll("col");
+  colElements.forEach((col, i) => {
+    if (mode === "fixed") {
+      col.style.width = fixedWidth + "px";
+    } else {
+      col.style.width = (100 / colCount) + "%";
+    }
+  });
+}
+
+// 遍历所有 Confluence 表格
+document.querySelectorAll("table.confluenceTable").forEach(table => {
+  adjustTableColumns(table, "average"); // 或 "fixed"
+});
+
+
+---
+
+🔑 为什么用 `<colgroup>`
+
+• <td> 和 <th> 的宽度只是建议，浏览器会根据内容自动调整，容易失效。
+• <colgroup> 和 <col> 是专门用来定义列宽的，能保证所有单元格统一。
+• 这样你只需要设置一次，不必逐个单元格去改。
+
+
+---
+
+⚙️ 动态加载支持
+
+如果 Confluence 页面是 SPA，可以用 MutationObserver：
+
+const observer = new MutationObserver(() => {
+  document.querySelectorAll("table.confluenceTable").forEach(table => {
+    adjustTableColumns(table, "average");
+  });
+});
+
+observer.observe(document.body, { childList: true, subtree: true });
+
+
+---
+
+这样你就能稳定地获取表格，并且准确调整每一列的宽度。
+
+要不要我帮你写一个 完整插件版本，直接用 <colgroup> 来控制列宽，而不是逐个 <td>，这样更稳健？
+
