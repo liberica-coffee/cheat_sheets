@@ -1,0 +1,37 @@
+好问题 👍
+
+在 Chrome 扩展的 manifest.json 里，content_scripts.matches 只能根据 URL 来决定在哪些页面注入脚本，不能直接根据 页面标题 来做条件判断。也就是说：
+
+• manifest 文件里只能写类似："content_scripts": [
+  {
+    "matches": ["https://*.example.com/*"],
+    "js": ["content.js"]
+  }
+]
+这里的 matches 是针对 URL 的，不支持 <title> 内容。
+
+
+想要根据标题关键词来限制使用范围
+
+需要在 content script 里自己判断：
+
+1. 在 manifest.json 里先让脚本注入到可能的页面范围（比如所有页面 "<all_urls>"，或者某个域名）。
+2. 在 content.js 里写逻辑：if (document.title.includes("关键词")) {
+  // 扩展功能启用
+  console.log("标题匹配，启用功能");
+} else {
+  // 不匹配就直接 return，不做任何事
+  console.log("标题不匹配，退出");
+}
+
+
+
+这样扩展就只会在标题包含某个关键词的页面上真正运行。
+
+总结
+
+• manifest.json 不能直接按标题过滤。
+• 解决方案是：在 manifest.json 里设定大致范围（URL），然后在 content script 里再用 document.title 做二次判断。
+
+
+要不要我帮你写一个最小可运行的示例扩展（manifest.json + content.js），让你可以直接测试？
