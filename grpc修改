@@ -1,0 +1,664 @@
+下面我给你一份 面向 Spring Boot + Gradle + Kotlin + MyBatis + PostgreSQL 架构 的 grpcurl 调用 gRPC API 的完整实战指南。我会从最关键的点讲起：你需要什么、服务端要怎么写、grpcurl 要怎么调用、常见坑怎么排查。这套流程你可以直接套用到你的项目里。
+
+---
+
+✅ 1. grpcurl 调用 API 的前提条件
+
+grpcurl 是一个类似 curl 的命令行工具，用来调用 gRPC 服务。
+要成功调用，你必须知道：
+
+• gRPC 服务的 host + port
+• 服务是否开启 TLS
+• 服务的 proto 文件（如果服务端开启了 reflection，可以不需要 proto）
+• 服务的 Service 名称 和 方法名
+• 请求参数（JSON 格式）
+
+
+---
+
+✅ 2. Spring Boot + Kotlin 项目中 gRPC 的典型结构
+
+你大概率使用的是：
+
+• grpc-spring-boot-starter（如 yidongnan/grpc-spring-boot-starter）
+• Kotlin + Gradle
+• MyBatis + PostgreSQL 作为业务层
+
+
+典型的 gRPC 服务定义：
+
+syntax = "proto3";
+
+package demo;
+
+service UserService {
+  rpc GetUser (GetUserRequest) returns (GetUserResponse);
+}
+
+message GetUserRequest {
+  int64 id = 1;
+}
+
+message GetUserResponse {
+  int64 id = 1;
+  string name = 2;
+}
+
+
+---
+
+✅ 3. grpcurl 调用方式（最常用的三种）
+
+✅ 3.1 服务端开启了 Reflection（推荐）
+
+如果你在 Spring Boot 中启用了 reflection：
+
+grpcServerBuilder.addService(ProtoReflectionService.newInstance())
+
+
+那么 grpcurl 可以直接调用：
+
+✅ 查询服务列表
+
+grpcurl -plaintext localhost:9090 list
+
+
+✅ 查询某个服务的方法
+
+grpcurl -plaintext localhost:9090 list demo.UserService
+
+
+✅ 调用 API（最常用）
+
+grpcurl -plaintext \
+  -d '{"id": 1}' \
+  localhost:9090 demo.UserService.GetUser
+
+
+---
+
+✅ 3.2 服务端未开启 Reflection（需要 proto 文件）
+
+假设你的 proto 文件在 src/main/proto/user.proto：
+
+grpcurl -plaintext \
+  -import-path src/main/proto \
+  -proto user.proto \
+  -d '{"id": 1}' \
+  localhost:9090 demo.UserService.GetUser
+
+
+---
+
+✅ 3.3 服务端使用 TLS（生产环境常见）
+
+如果你有证书：
+
+grpcurl \
+  -cacert server.crt \
+  -d '{"id": 1}' \
+  yourdomain.com:443 demo.UserService.GetUser
+
+
+如果你只是想跳过证书验证（开发环境）：
+
+grpcurl -insecure \
+  -d '{"id": 1}' \
+  yourdomain.com:443 demo.UserService.GetUser
+
+
+---
+
+✅ 4. Spring Boot + Kotlin gRPC 服务端示例
+
+你可能的 Kotlin 实现：
+
+@GrpcService
+class UserServiceImpl(
+    private val userMapper: UserMapper
+) : UserServiceGrpc.UserServiceImplBase() {
+
+    override fun getUser(
+        request: GetUserRequest,
+        responseObserver: StreamObserver<GetUserResponse>
+    ) {
+        val user = userMapper.findById(request.id)
+        val response = GetUserResponse.newBuilder()
+            .setId(user.id)
+            .setName(user.name)
+            .build()
+
+        responseObserver.onNext(response)
+        responseObserver.onCompleted()
+    }
+}
+
+
+---
+
+✅ 5. 常见错误与排查
+
+错误	原因	解决方式	
+Failed to list services: server does not support the reflection API	没开 reflection	在 Spring Boot 中加入 ProtoReflectionService	
+unknown service demo.UserService	包名或 service 名不对	用 grpcurl list 查看	
+invalid character 'i' looking for beginning of value	JSON 格式错误	检查 -d 内容	
+connection refused	端口不对 / 服务没启动	检查端口、日志	
+TLS handshake error	证书问题	用 -insecure 或正确证书	
+
+
+---
+
+✅ 6. 给你一个最常用的模板（可直接复制）
+
+✅ 无 TLS + 有 Reflection
+
+grpcurl -plaintext -d '{"id": 1}' localhost:9090 demo.UserService.GetUser
+
+
+✅ 无 Reflection + 有 proto
+
+grpcurl -plaintext \
+  -import-path src/main/proto \
+  -proto user.proto \
+  -d '{"id": 1}' \
+  localhost:9090 demo.UserService.GetUser
+
+
+---
+
+✅ 想进一步帮你优化
+
+你现在的架构（Spring Boot + Kotlin + MyBatis + PostgreSQL）非常适合做：
+
+• gRPC + REST 双协议
+• gRPC Gateway
+• gRPC + Kotlin 协程
+• gRPC + MyBatis 的最佳实践（Mapper 层如何优雅封装）
+
+
+如果你愿意，我可以帮你：
+
+✅ 生成一套完整的 gRPC + Kotlin + MyBatis 项目模板
+✅ 生成 grpcurl 调试脚本
+✅ 生成 proto 目录结构最佳实践
+
+只要告诉我你现在的 gRPC 服务结构，我就能继续扩展。
+
+----  here 
+
+你这个需求本质是：在不改 request（项目 id 不变）的前提下，给 gRPC 的 response 多加一个“创建日期”字段。
+我按“从底到顶”的顺序帮你改一遍：PostgreSQL → MyBatis → Proto → 代码生成 → Kotlin gRPC 实现 → grpcurl 调试。你可以逐步对照项目改。
+
+---
+
+1. 先约定当前结构（方便对照）
+
+假设你现在大概是这种结构（和我上次举例保持一致，只是把 id 当成项目 id）：
+
+1.1 Proto（简化版本）
+
+syntax = "proto3";
+
+package demo;
+
+service ProjectService {
+  rpc GetProject (GetProjectRequest) returns (GetProjectResponse);
+}
+
+message GetProjectRequest {
+  int64 project_id = 1;
+}
+
+message GetProjectResponse {
+  int64 project_id = 1;
+  string name = 2;
+}
+
+
+1.2 数据库表（PostgreSQL）
+
+CREATE TABLE project (
+    id          BIGSERIAL PRIMARY KEY,
+    name        TEXT NOT NULL
+    -- 现在还没有创建日期
+);
+
+
+1.3 MyBatis + Kotlin 实体和 Mapper（示意）
+
+data class Project(
+    val id: Long,
+    val name: String
+)
+
+
+@Mapper
+interface ProjectMapper {
+    fun findById(id: Long): Project?
+}
+
+
+<select id="findById" parameterType="long" resultType="com.example.domain.Project">
+  SELECT id, name
+  FROM project
+  WHERE id = #{id}
+</select>
+
+
+1.4 gRPC Service 实现（Kotlin）
+
+@GrpcService
+class ProjectServiceImpl(
+    private val projectMapper: ProjectMapper
+) : ProjectServiceGrpc.ProjectServiceImplBase() {
+
+    override fun getProject(
+        request: GetProjectRequest,
+        responseObserver: StreamObserver<GetProjectResponse>
+    ) {
+        val project = projectMapper.findById(request.projectId)
+            ?: throw Status.NOT_FOUND
+                .withDescription("Project not found: id=${request.projectId}")
+                .asRuntimeException()
+
+        val response = GetProjectResponse.newBuilder()
+            .setProjectId(project.id)
+            .setName(project.name)
+            .build()
+
+        responseObserver.onNext(response)
+        responseObserver.onCompleted()
+    }
+}
+
+
+下面我们就在这个基础上，把 “创建日期 created_at / createDate” 一路贯穿上去。
+
+---
+
+2. 数据库层：给表加创建日期字段
+
+2.1 PostgreSQL 添加字段
+
+最典型的情况是 TIMESTAMP WITH TIME ZONE，默认当前时间：
+
+ALTER TABLE project
+    ADD COLUMN created_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
+
+如果你已经有这个字段就跳过这一步。
+
+2.2 确认数据格式
+
+后面 gRPC 一般会用两种方式：
+
+• 方式 A：用 string（ISO 8601，如 "2025-01-10T12:34:56Z"）
+• 方式 B：用 google.protobuf.Timestamp
+
+
+我们后面会分别给你两个版本，你选一个即可。
+数据库这层你只要保证 created_at 是标准时间类型即可。
+
+---
+
+3. MyBatis 层：实体 & SQL 同步创建日期
+
+3.1 Kotlin 实体增加字段
+
+data class Project(
+    val id: Long,
+    val name: String,
+    val createdAt: OffsetDateTime   // 或 Instant / LocalDateTime，看你项目习惯
+)
+
+
+如果你用 Instant：
+
+data class Project(
+    val id: Long,
+    val name: String,
+    val createdAt: Instant
+)
+
+
+再结合项目中的 MyBatis TypeHandler（如你有 OffsetDateTime ↔ TIMESTAMPTZ 的 handler）。
+
+3.2 MyBatis XML 修改
+
+<select id="findById" parameterType="long" resultType="com.example.domain.Project">
+  SELECT
+    id,
+    name,
+    created_at
+  FROM project
+  WHERE id = #{id}
+</select>
+
+
+如果你使用的是 <resultMap>，也记得加一条：
+
+<resultMap id="ProjectResultMap" type="com.example.domain.Project">
+  <id     property="id"        column="id" />
+  <result property="name"      column="name" />
+  <result property="createdAt" column="created_at" />
+</resultMap>
+
+<select id="findById" parameterType="long" resultMap="ProjectResultMap">
+  SELECT id, name, created_at
+  FROM project
+  WHERE id = #{id}
+</select>
+
+
+到这里为止，项目实体已经可以取到 created_at 了。
+
+---
+
+4. Proto 层：在 Response 中增加创建日期字段
+
+4.1 基本原则
+
+• request 中项目 id 不变：GetProjectRequest 不动；
+• 你只需要改 GetProjectResponse，增加一个字段；
+• 新字段要使用 新的 field number，不能复用已有的数字。
+
+
+下面给你两个版本：
+
+---
+
+4.2 版本 A：用 string 表示创建日期（简单、好调试）
+
+syntax = "proto3";
+
+package demo;
+
+service ProjectService {
+  rpc GetProject (GetProjectRequest) returns (GetProjectResponse);
+}
+
+message GetProjectRequest {
+  int64 project_id = 1;
+}
+
+message GetProjectResponse {
+  int64 project_id = 1;
+  string name = 2;
+  string created_at = 3;  // 新增字段，使用 ISO8601 字符串
+}
+
+
+• 优点：• grpcurl 调试非常直观；
+• 不要额外 import。
+
+• 建议格式：• 2025-01-10T12:34:56Z（UTC）
+• 或 2025-01-10T21:34:56+09:00（带时区）
+
+
+
+---
+
+4.3 版本 B：用 `google.protobuf.Timestamp`（更规范）
+
+syntax = "proto3";
+
+package demo;
+
+import "google/protobuf/timestamp.proto";
+
+service ProjectService {
+  rpc GetProject (GetProjectRequest) returns (GetProjectResponse);
+}
+
+message GetProjectRequest {
+  int64 project_id = 1;
+}
+
+message GetProjectResponse {
+  int64 project_id = 1;
+  string name = 2;
+  google.protobuf.Timestamp created_at = 3;  // 新增字段
+}
+
+
+• 优点：• 更通用、语言无关；
+• 更适合多语言客户端。
+
+• 调 grpcurl 时的 JSON 结构要写成：
+
+
+{
+  "projectId": 1,
+  "createdAt": {
+    "seconds": 1736498400,
+    "nanos": 0
+  }
+}
+
+
+因为调试麻烦一点，如果你主要是内部服务 + 调试为主，我建议你选 4.2 的 string 版本。
+
+---
+
+5. Gradle：重新生成 gRPC 代码
+
+你项目中大概率用的是 Protobuf 插件，例如：
+
+plugins {
+    id("com.google.protobuf") version "0.9.4"
+}
+
+dependencies {
+    implementation("io.grpc:grpc-kotlin-stub:1.4.1")
+    implementation("io.grpc:grpc-protobuf:1.66.0")
+    implementation("com.google.protobuf:protobuf-java:4.28.2")
+}
+
+
+更新完 .proto 后执行：
+
+./gradlew clean generateProto
+# 或者如果你有组合 task：
+./gradlew clean build
+
+
+确认：
+
+• build/generated/source/proto 下的 GetProjectResponse 已经有新字段；
+• Kotlin 的 GetProjectResponse Builder 出现 setCreatedAt(...) 或 setCreatedAtValue(...) 等方法（具体名字看你最终的字段名）。
+
+
+---
+
+6. gRPC Service 实现：把 createdAt 赋值进 response
+
+下面分别给你：
+
+• 版本 A：字符串 created_at
+• 版本 B：Timestamp created_at
+
+
+---
+
+6.1 版本 A：字符串 created_at（推荐你先用这个）
+
+6.1.1 Kotlin 实体（假设用 `OffsetDateTime`）
+
+data class Project(
+    val id: Long,
+    val name: String,
+    val createdAt: OffsetDateTime
+)
+
+
+6.1.2 gRPC 实现中设置字段
+
+@GrpcService
+class ProjectServiceImpl(
+    private val projectMapper: ProjectMapper
+) : ProjectServiceGrpc.ProjectServiceImplBase() {
+
+    override fun getProject(
+        request: GetProjectRequest,
+        responseObserver: StreamObserver<GetProjectResponse>
+    ) {
+        val project = projectMapper.findById(request.projectId)
+            ?: throw Status.NOT_FOUND
+                .withDescription("Project not found: id=${request.projectId}")
+                .asRuntimeException()
+
+        // 统一转成 ISO 8601 字符串（这里用 UTC 示例）
+        val createdAtIso = project.createdAt.toInstant().toString()
+        // 例如：2025-01-10T12:34:56Z
+
+        val response = GetProjectResponse.newBuilder()
+            .setProjectId(project.id)
+            .setName(project.name)
+            .setCreatedAt(createdAtIso)  // 新增赋值
+            .build()
+
+        responseObserver.onNext(response)
+        responseObserver.onCompleted()
+    }
+}
+
+
+如果你的 createdAt 本来就是 Instant，可以直接 project.createdAt.toString()。
+
+---
+
+6.2 版本 B：Timestamp created_at（更规范）
+
+6.2.1 Kotlin 实体（用 `Instant` 最好对接 Timestamp）
+
+data class Project(
+    val id: Long,
+    val name: String,
+    val createdAt: Instant
+)
+
+
+6.2.2 gRPC 实现转为 `Timestamp`
+
+import com.google.protobuf.Timestamp
+import java.time.Instant
+
+@GrpcService
+class ProjectServiceImpl(
+    private val projectMapper: ProjectMapper
+) : ProjectServiceGrpc.ProjectServiceImplBase() {
+
+    override fun getProject(
+        request: GetProjectRequest,
+        responseObserver: StreamObserver<GetProjectResponse>
+    ) {
+        val project = projectMapper.findById(request.projectId)
+            ?: throw Status.NOT_FOUND
+                .withDescription("Project not found: id=${request.projectId}")
+                .asRuntimeException()
+
+        val instant = project.createdAt   // Instant
+        val createdAtTimestamp = Timestamp.newBuilder()
+            .setSeconds(instant.epochSecond)
+            .setNanos(instant.nano)
+            .build()
+
+        val response = GetProjectResponse.newBuilder()
+            .setProjectId(project.id)
+            .setName(project.name)
+            .setCreatedAt(createdAtTimestamp)  // 新增赋值
+            .build()
+
+        responseObserver.onNext(response)
+        responseObserver.onCompleted()
+    }
+}
+
+
+---
+
+7. grpcurl 调用示例（request 不变，只是看 response 多了字段）
+
+假设你的服务还是：
+
+• host: localhost
+• port: 9090
+• 无 TLS（用 -plaintext）
+• reflection 已经开启
+
+
+7.1 请求：项目 id 不变
+
+grpcurl -plaintext \
+  -d '{"projectId": 1}' \
+  localhost:9090 demo.ProjectService.GetProject
+
+
+7.2 若你选择的是「字符串 created_at」版本
+
+返回类似：
+
+{
+  "projectId": "1",
+  "name": "EC Site Renewal",
+  "createdAt": "2025-01-10T12:34:56Z"
+}
+
+
+你可以直接在 grpcurl 结果里肉眼确认时间。
+
+7.3 若你选择的是「Timestamp created_at」版本
+
+返回类似：
+
+{
+  "projectId": "1",
+  "name": "EC Site Renewal",
+  "createdAt": {
+    "seconds": "1736498400",
+    "nanos": 0
+  }
+}
+
+
+如果以后前端或其他服务要用成 ISO 字符串，可以在各自语言中再转一次。
+
+---
+
+8. 相关修改点总表（Checklist）
+
+你可以按这个 checklist 一项一项勾掉：
+
+1. 数据库：• 新增字段： project.created_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
+2. Kotlin 实体：• 新增属性： val createdAt: OffsetDateTime 或 Instant
+
+3. MyBatis XML / Mapper：• SQL： SELECT id, name, created_at FROM project WHERE id = #{id}
+• resultMap： property="createdAt" column="created_at"
+
+4. Proto 文件：• 在 GetProjectResponse 中新增字段：• 字符串版：string created_at = 3;
+• 或 Timestamp 版：google.protobuf.Timestamp created_at = 3;
+
+• 注意： request 中 project_id 不改。
+
+5. Gradle：• 执行 ./gradlew clean generateProto 或 ./gradlew clean build 重新生成代码。
+
+6. Kotlin gRPC 实现：• 在构建 GetProjectResponse 时，增加 setCreatedAt(...)。
+
+7. grpcurl 调试：• 请求仍然是：-d '{"projectId": 1}'
+• 观察 response 中是否有 createdAt / created_at 字段。
+
+
+
+---
+
+如果你愿意，把你现在的：
+
+• proto 文件（相关 message + service 部分）
+• Project 实体
+• MyBatis XML（或注解版 mapper）
+
+
+贴一份出来，我可以直接帮你改到“可直接粘贴进项目”的版本，包括选好是 string 还是 Timestamp、时区、命名风格（created_at vs createdAt）等。
+
+
