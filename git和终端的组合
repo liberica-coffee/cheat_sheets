@@ -1,0 +1,237 @@
+明白了，。你刚刚说“终端”，我来把 Git 在终端里能和哪些工具深度结合、怎么结合 做成一个 模块化、可操作、可扩展 的清单，完全贴合你偏好的工作流风格。
+
+下面是 终端生态中最强的 Git 组合拳。
+
+---
+
+🧩 Git × 终端：最强组合生态（ 版）
+
+我把它分成 4 大类：
+① diff/merge、② 交互式操作、③ 美化增强、④ 工作流自动化
+
+---
+
+1. 🔍 Diff / Merge 工具（终端内可视化）
+
+1. vimdiff / nvimdiff
+
+你已经熟悉的组合，但这里给你最干净的配置：
+
+git config --global diff.tool vimdiff
+git config --global merge.tool vimdiff
+git config --global mergetool.prompt false
+
+
+启动：
+
+git difftool
+git mergetool
+
+
+---
+
+2. delta（现代 diff 美化器）
+
+终端 diff 的质变工具。
+
+配置：
+
+git config --global core.pager delta
+git config --global interactive.diffFilter "delta --color-only"
+git config --global delta.navigate true
+
+
+效果：
+
+• 语法高亮
+• 侧边栏
+• 行号
+• GitHub 风格 diff
+
+
+---
+
+3. difftastic（结构化 diff）
+
+按语法树比较代码，适合 Kotlin / Java。
+
+配置：
+
+git config --global diff.external difft
+
+
+---
+
+2. 🎛 交互式 Git 工具（TUI）
+
+1. tig（终端 Git GUI）
+
+终端里最强的 Git 可视化工具。
+
+启动：
+
+tig
+tig status
+tig blame
+
+
+用途：
+
+• 浏览 commit
+• 交互式暂存
+• 查看 diff
+• 查看 blame
+
+
+---
+
+2. lazygit（超强 TUI Git 客户端）
+
+比 tig 更现代、更快。
+
+安装（macOS）：
+
+brew install lazygit
+
+
+启动：
+
+lazygit
+
+
+用途：
+
+• 交互式 stash
+• 交互式 rebase
+• 可视化 merge
+• 快速切换分支
+
+
+---
+
+3. fzf（模糊搜索 + Git）
+
+fzf + Git 是终端效率神器。
+
+常用组合：
+
+切换分支：
+
+git checkout $(git branch | fzf)
+
+
+查找 commit：
+
+git log --oneline | fzf
+
+
+查找文件：
+
+fzf --preview 'bat --style=numbers --color=always {}'
+
+
+---
+
+3. 🎨 美化增强工具
+
+1. bat（cat 的增强版）
+
+语法高亮 + 行号 + Git 集成。
+
+brew install bat
+
+
+Git 中自动使用 bat 作为 pager：
+
+git config --global core.pager "bat --paging=always"
+
+
+---
+
+2. exa / eza（ls 的增强版）
+
+显示 Git 状态：
+
+eza -la --git
+
+
+---
+
+3. starship（跨 shell 的现代 prompt）
+
+显示 Git 分支、状态、变更数量。
+
+安装：
+
+brew install starship
+
+
+配置：
+
+eval "$(starship init zsh)"
+
+
+---
+
+4. ⚙️ 工作流自动化工具
+
+1. pre-commit（自动格式化、lint）
+
+适合 Kotlin + Spring Boot 项目。
+
+安装：
+
+brew install pre-commit
+
+
+配置 .pre-commit-config.yaml 后启用：
+
+pre-commit install
+
+
+---
+
+2. gh（GitHub CLI）
+
+终端里直接操作 GitHub。
+
+常用命令：
+
+gh pr create
+gh pr view
+gh pr merge
+gh repo clone
+
+
+---
+
+3. hub（GitHub CLI 的另一种实现）
+
+让 git 命令直接支持 GitHub：
+
+git browse
+git pull-request
+
+
+---
+
+🧩 总结：终端里 Git 的黄金组合
+
+功能	工具	作用	
+diff/merge	vimdiff / delta / difftastic	冲突解决、结构化 diff	
+TUI	tig / lazygit	可视化 Git 操作	
+搜索	fzf	分支/commit/文件搜索	
+美化	bat / eza / starship	更清晰的终端体验	
+自动化	pre-commit / gh	质量控制、GitHub 操作	
+
+
+---
+
+如果你愿意，我可以为你：
+
+• 生成 “ 专用 Git 终端环境配置包”（可直接复制到 .zshrc）
+• 生成 Git + fzf + delta 的最佳实践工作流图（Mermaid）
+• 生成 你的 Kotlin/Spring Boot 项目的 Git 工作流模板
+
+
+你想让我先帮你构建哪一部分，我就马上开始。
