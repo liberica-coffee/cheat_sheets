@@ -1,0 +1,262 @@
+当然可以，Arron。
+你提到 Git + Vim（例如 difftool） 是一个经典组合，其实 Git 还能和很多软件深度结合，形成强大的开发工作流。下面我给你做一个 系统化、可操作、可扩展 的总结，完全符合你偏好的“模块化 + 可维护 + 可分享”的风格。
+
+---
+
+🧩 Git 可以和哪些软件结合？怎么结合？
+
+下面我按 类别 给你整理：编辑器、终端工具、GUI 工具、IDE、浏览器、CI/CD、文档工具等。
+
+---
+
+1. 📝 编辑器 / 终端工具
+
+1. Vim / Neovim
+
+你已经知道 difftool，这里补充更多组合方式：
+
+🔧 常见结合方式
+
+• git config --global diff.tool vimdiff
+• git config --global merge.tool vimdiff
+• git mergetool → 启动 vimdiff 三栏/四栏合并
+• 在 Vim 内直接使用 Git：• vim-fugitive（最强 Git 插件）
+• gitsigns.nvim（显示 diff、blame、hunk 操作）
+
+
+
+🧠 适用场景
+
+• 代码审查
+• 冲突解决
+• 快速 commit / blame / log
+
+
+---
+
+2. fzf（模糊搜索）
+
+Git + fzf 是终端神器。
+
+🔧 结合方式
+
+• fzf + git log → 交互式查看 commit
+• fzf + git checkout → 交互式切换分支
+• fzf + git add -p → 交互式暂存 hunk
+
+
+🧠 适用场景
+
+• 快速跳转文件
+• 快速切换分支
+• 查找历史记录
+
+
+---
+
+3. delta（美化 diff）
+
+Git diff 的现代替代品。
+
+🔧 结合方式
+
+git config --global core.pager delta
+git config --global interactive.diffFilter "delta --color-only"
+
+
+🧠 适用场景
+
+• 更清晰的 diff
+• 代码审查
+• 终端美化
+
+
+---
+
+4. tig（Git 的 TUI 客户端）
+
+终端里的 Git GUI。
+
+🔧 结合方式
+
+• tig → 查看 log、diff、blame
+• tig status → 交互式暂存
+
+
+🧠 适用场景
+
+• 终端内的可视化 Git 操作
+• 快速浏览历史
+
+
+---
+
+2. 🖥 GUI 工具
+
+1. VS Code
+
+Git 内置支持 + 扩展生态。
+
+🔧 结合方式
+
+• Source Control 面板
+• GitLens 插件（最强可视化 Git 工具）
+• 内置 diff/merge 工具
+
+
+🧠 适用场景
+
+• 团队协作
+• 代码审查
+• 可视化 blame
+
+
+---
+
+2. JetBrains（IntelliJ / PyCharm / WebStorm）
+
+你熟悉 Kotlin + IntelliJ，这个组合非常强。
+
+🔧 结合方式
+
+• 内置 Git
+• 内置 merge tool
+• 内置 rebase/interactive rebase UI
+• GitHub / GitLab 集成
+
+
+🧠 适用场景
+
+• 大型项目
+• 复杂 rebase
+• 多人协作
+
+
+---
+
+3. GitHub Desktop / Sourcetree / Fork
+
+图形化 Git 客户端。
+
+🧠 适用场景
+
+• 新人 onboarding
+• 可视化历史
+• 多仓库管理
+
+
+---
+
+3. 🌐 浏览器 / Web 工具
+
+1. GitHub / GitLab / Bitbucket
+
+Git 的远程协作核心。
+
+🔧 结合方式
+
+• Pull Request / Merge Request
+• Web IDE
+• 代码审查
+• CI/CD 触发
+
+
+---
+
+2. 浏览器插件
+
+例如：
+
+• Octotree（GitHub 文件树）
+• Refined GitHub（增强 UI）
+
+
+---
+
+4. ⚙️ CI/CD 工具
+
+Git 是 CI/CD 的触发器。
+
+常见结合方式
+
+• GitHub Actions
+• GitLab CI
+• Jenkins
+• CircleCI
+• ArgoCD（GitOps）
+
+
+🧠 适用场景
+
+• push → 自动测试
+• PR → 自动构建
+• main → 自动部署
+• GitOps → 配置即代码
+
+
+---
+
+5. 📚 文档 / 知识管理工具
+
+1. Obsidian
+
+你最近在研究的方向。
+
+🔧 结合方式
+
+• Obsidian Git 插件
+• 自动 commit + push
+• 多设备同步
+• 技术笔记版本管理
+
+
+---
+
+2. MkDocs / Docusaurus
+
+文档即代码。
+
+🔧 结合方式
+
+• Git push → 自动部署文档
+• GitHub Pages / Cloudflare Pages
+
+
+---
+
+6. 🧪 测试 / 代码质量工具
+
+• pre-commit（自动格式化、lint）
+• husky（前端项目）
+• lint-staged
+
+
+🔧 结合方式
+
+.git/hooks/ 或 pre-commit 配置
+
+---
+
+🧩 总结：Git 的组合生态（Arron 版）
+
+类别	软件	结合方式	适用场景	
+编辑器	Vim/Neovim	difftool, mergetool, fugitive	冲突解决、快速操作	
+终端工具	fzf, delta, tig	diff 美化、交互式操作	高效终端工作流	
+GUI	VS Code, IntelliJ	内置 Git, GitLens	团队协作、审查	
+Web	GitHub/GitLab	PR/MR, CI/CD	协作、自动化	
+CI/CD	GitHub Actions	push 触发	自动测试/部署	
+文档	Obsidian, MkDocs	Git 同步	知识管理	
+质量	pre-commit	hook	自动格式化	
+
+
+---
+
+如果你愿意，我可以为你：
+
+• 生成 Git + Vim + fzf + delta 的最佳实践配置
+• 生成 GitOps 工作流图（Mermaid）
+• 生成 你的开发环境（Kotlin + Spring Boot）最适合的 Git 工作流模板
+
+
+你想先从哪一块开始优化你的工作流，我就能立刻帮你构建一个模块化方案。
+
