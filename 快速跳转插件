@@ -1,0 +1,88 @@
+当然有，不过我先直接告诉你一个关键点：
+IntelliJ 本身没有专门“修复双 Shift”的插件，但有几个插件可以让你完全绕开双 Shift，并且提供更强的搜索体验。
+这些插件在 mac 上非常稳定，特别适合你这种追求高效工作流的开发者。
+
+下面我给你列出 真正有用、能替代双 Shift 的插件。
+
+---
+
+🔌 1. Key Promoter X（最推荐）
+
+虽然它不是直接替代双 Shift，但它能让你快速学会所有替代快捷键。
+
+用途：
+
+• 每次你用鼠标点菜单，它会提示对应快捷键
+• 你会自然学会：• ⌘⇧A（Find Action）
+• ⌘O（Go to Class）
+• ⌘⇧O（Go to File）
+• ⌘E（Recent Files）
+
+
+
+安装：
+Preferences → Plugins → Marketplace → 搜索 Key Promoter X
+
+适合你这种喜欢优化 workflow 的开发者。
+
+---
+
+🔌 2. VSCode Keymap（如果你想换一套更顺手的快捷键）
+
+如果你觉得 IntelliJ 的默认键位不顺手，可以直接换成 VSCode 风格。
+
+特点：
+
+• VSCode 的搜索是 ⌘P
+• 你可以用它替代双 Shift
+• 很多操作更轻量
+
+
+安装：
+Preferences → Plugins → Marketplace → 搜索 VSCode Keymap
+
+---
+
+🔌 3. IdeaVim（如果你喜欢 Vim 风格）
+
+如果你用 Vim，这个插件可以让你用 /、?、f 等方式快速跳转，几乎不需要 Search Everywhere。
+
+---
+
+🔌 4. AceJump / JumpToLine（快速跳转插件）
+
+如果你只是想快速跳到文件、类、符号位置，这两个插件比 Search Everywhere 更快。
+
+AceJump：
+
+• 按一个快捷键
+• 输入一个字母
+• 直接跳到屏幕上的任意位置
+
+
+JumpToLine：
+
+• 类似 Sublime 的跳行体验
+
+
+---
+
+🔌 5. CodeGlance Pro（迷你地图）
+
+如果你用 Search Everywhere 是为了快速定位代码位置，这个插件能让你像 VSCode 一样有一个代码 mini-map。
+
+---
+
+🎯 总结：哪一个最适合你？
+
+根据你平时的开发风格（Kotlin + Spring Boot、workflow 优化、快捷键驱动），我给你排序：
+
+1. Key Promoter X（最通用、最稳）
+2. VSCode Keymap（如果你想要 ⌘P 风格搜索）
+3. AceJump（快速跳转神器）
+4. CodeGlance Pro（视觉定位）
+
+
+---
+
+如果你愿意，我可以帮你 设计一套完整的 IntelliJ 快捷键布局，让你完全不依赖双 Shift，也能比以前更快。
