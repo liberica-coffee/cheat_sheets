@@ -1,0 +1,11 @@
+Linux 默认会保存历史，但如果你想确保某些命令一定被记录：
+
+强制保存历史
+
+export HISTCONTROL=ignoredups
+export HISTSIZE=50000
+export HISTFILESIZE=50000
+
+
+写入 ~/.bashrc 即可永久生效。
+
