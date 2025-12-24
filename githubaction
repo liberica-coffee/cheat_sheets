@@ -380,3 +380,186 @@ GitHub Actions by GitHub
 
 
 
+
+明白了，你的核心目标不是“搭建本地环境”本身，而是 为了在本地复现 GitHub Actions 的 token 错误并修复它。
+那我们就直接围绕 如何在本地用 act 调试 token 错误 来给你一个精准、可操作的流程。
+
+---
+
+🔧 如何在本地调试 GitHub Actions 的 Token 错误
+
+GitHub Actions 中最常见的 token 错误包括：
+
+• GITHUB_TOKEN 权限不足
+• 自定义 token（PAT）无效或过期
+• Secrets 没有正确传入
+• workflow 中引用错误（如 ${{ secrets.MY_TOKEN }} 拼错）
+
+
+使用 act 本地调试时，你必须手动提供 token，否则 workflow 会报错。
+
+下面是你需要做的完整步骤。
+
+---
+
+🧱 第一步：创建 `.secrets` 文件（关键）
+
+在你的项目根目录创建：
+
+.secrets
+
+
+内容示例：
+
+GITHUB_TOKEN=ghp_xxxxxxxx
+MY_PAT=ghp_xxxxxxxx
+
+
+你可以把所有 workflow 用到的 secrets 都放进去。
+
+⚠️ 注意：act 不会自动生成 GITHUB_TOKEN，你必须自己提供。
+
+---
+
+🧱 第二步：让 act 使用这些 secrets
+
+如果你已经创建了 .actrc，确保里面有：
+
+--secret-file .secrets
+
+
+如果没有 .actrc，你也可以直接运行：
+
+act --secret-file .secrets
+
+
+---
+
+🧱 第三步：本地运行 workflow 并复现 token 错误
+
+运行默认事件：
+
+act
+
+
+运行 push：
+
+act push
+
+
+运行特定 job：
+
+act -j build
+
+
+如果 token 有问题，你会在本地直接看到错误日志，例如：
+
+• Bad credentials
+• Resource not accessible by integration
+• HttpError: 403
+• Not Found（常见于 token 权限不足）
+
+
+这样你就能快速定位问题。
+
+---
+
+🧱 第四步：常见 token 错误及解决方式
+
+1. Bad credentials
+
+说明 token 无效或过期。
+
+解决：
+
+• 重新生成 PAT
+• 更新 .secrets 文件
+
+
+---
+
+2. Resource not accessible by integration
+
+说明 GITHUB_TOKEN 权限不足。
+
+解决： 在 workflow 中添加：
+
+permissions:
+  contents: write
+  pull-requests: write
+
+
+或者你需要使用 PAT 替代 GITHUB_TOKEN。
+
+---
+
+3. Secrets 没有传入 act
+
+如果你看到：
+
+Error: Input required and not supplied: token
+
+
+说明 act 没有收到 secrets。
+
+解决：
+
+• 确认 .secrets 文件存在
+• 确认 .actrc 中有 --secret-file .secrets
+• 或运行：
+
+
+act --secret-file .secrets
+
+
+---
+
+4. workflow 中引用错误
+
+例如：
+
+${{ secrets.MY_TOKE }}   # 拼错
+
+
+本地 act 会直接报错，你可以快速修复。
+
+---
+
+🧱 第五步：验证修复是否成功
+
+修改 token 或 workflow 后，再次运行：
+
+act -j your_job
+
+
+如果不再报错，说明 token 问题已经解决。
+
+---
+
+🎯 总结：你现在应该做什么
+
+1. 在项目根目录创建 .secrets
+2. 把你的 token 放进去
+3. 用 act 运行 workflow
+4. 查看本地日志，定位 token 错误
+5. 修改 workflow 或 token
+6. 再次用 act 验证修复是否成功
+
+
+---
+
+如果你愿意，我可以帮你：
+
+• 检查你的 workflow 中 token 使用是否正确
+• 帮你写一个 .secrets 模板
+• 分析你遇到的具体 token 错误日志
+
+
+你要不要把你的错误日志贴给我，我帮你精准定位问题。
+
+
+----
+
+
+
+
