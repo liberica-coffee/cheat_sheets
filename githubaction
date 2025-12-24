@@ -1,0 +1,104 @@
+在本地调试 GitHub Actions 的 YAML，其实是很多开发者都会遇到的痛点。好消息是：可以本地调试，而且方式不止一种。我给你一个清晰、可操作、适合你这种偏系统化工作流优化风格的方案。
+
+---
+
+🧰 本地调试 GitHub Actions 的三种主流方式
+
+1. 使用官方推荐的 `act` 工具（最常用、最接近真实环境）
+
+act 是一个开源工具，可以在本地运行 GitHub Actions，模拟 GitHub 的 runner 环境。
+
+🔧 安装
+
+macOS（你常用的环境）：
+
+brew install act
+
+
+▶️ 运行 workflow
+
+在你的仓库根目录执行：
+
+act
+
+
+如果你想运行特定事件，例如 push：
+
+act push
+
+
+运行特定 job：
+
+act -j build
+
+
+📝 注意事项
+
+• 默认使用的 runner 是 ubuntu-latest 的轻量镜像，有些 action 可能缺依赖。
+• 如果你需要更完整的环境：
+
+
+act --container-architecture linux/amd64 -P ubuntu-latest=catthehacker/ubuntu:full-latest
+
+
+这对你这种经常调试复杂工具链的人特别有用。
+
+---
+
+2. 使用 Docker 手动模拟 runner（适合深度调试）
+
+如果你需要完全可控的环境（比如自定义依赖、插件、系统级工具），可以直接拉 GitHub runner 的官方 Docker 镜像：
+
+docker run -it ghcr.io/actions/runner:latest
+
+
+然后把你的 workflow 脚本挂载进去执行。
+
+这种方式更适合你这种喜欢“可复现、可维护”的工作流设计者。
+
+---
+
+3. 使用 VSCode + GitHub Actions 插件（可视化调试）
+
+VSCode 有一个插件：
+
+GitHub Actions by GitHub
+
+它可以：
+
+• 语法检查
+• 自动补全
+• 本地模拟 workflow 结构
+• 直接触发 act 运行
+
+
+如果你已经在维护跨平台 keymap 和插件体系，这个方式会让你的调试体验更顺滑。
+
+---
+
+🧪 推荐给你的最佳实践（基于你的工作风格）
+
+结合你对可维护性、可复现性和跨平台一致性的追求，我建议你采用：
+
+act + VSCode 插件 + 自定义 Docker runner（可选）
+
+这样你可以：
+
+• 在本地快速迭代 YAML
+• 保证环境一致性
+• 把调试流程写成文档分享给团队（你擅长的事）
+
+
+---
+
+如果你愿意，我可以帮你：
+
+• 生成一个适合你项目的 act 配置
+• 给你的 workflow 做结构优化
+• 帮你写一个“团队可复用的 GitHub Actions 本地调试指南”
+
+
+你想让我先帮你优化现有的 workflow，还是先搭建本地调试环境呢？
+
+
+
