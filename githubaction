@@ -100,5 +100,150 @@ act + VSCode 插件 + 自定义 Docker runner（可选）
 
 你想让我先帮你优化现有的 workflow，还是先搭建本地调试环境呢？
 
+-----
 
+
+
+太好了，我们就一步一步把 GitHub Actions 的本地调试环境在你的 macOS 上搭建起来。按照你的风格，我会给你一个可复现、可维护、团队可共享的方案。
+
+---
+
+🧱 本地调试环境搭建（macOS）
+
+🥇 第一步：安装 `act`（本地运行 GitHub Actions 的核心工具）
+
+act 是目前最成熟、最接近 GitHub Actions 真机环境的本地模拟器。
+
+安装（macOS）
+
+brew install act
+
+
+安装完成后确认：
+
+act --version
+
+
+---
+
+🥈 第二步：准备 Docker（act 依赖 Docker）
+
+你应该已经在用 Docker（因为你常用 Docker Compose + PostgreSQL），但还是确认一下：
+
+docker --version
+
+
+如果 Docker Desktop 没启动，记得打开它。
+
+---
+
+🥉 第三步：为你的仓库准备本地运行环境
+
+进入你的项目根目录（包含 .github/workflows）：
+
+cd your-project
+
+
+然后直接试跑：
+
+act
+
+
+如果 workflow 监听的是 push：
+
+act push
+
+
+如果你想跑某个 job：
+
+act -j build
+
+
+---
+
+🧩 第四步：使用更完整的 runner 镜像（强烈推荐给你）
+
+默认镜像太轻量，很多工具链（Java、Node、Docker CLI 等）都没有。
+
+你可以指定一个更完整的镜像：
+
+act \
+  --container-architecture linux/amd64 \
+  -P ubuntu-latest=catthehacker/ubuntu:full-latest
+
+
+这能最大程度模拟 GitHub Actions 的真实环境。
+
+---
+
+🧪 第五步：为你的项目创建 `.actrc`（让团队共享配置）
+
+为了让团队成员也能一键运行，你可以在项目根目录创建 .actrc：
+
+--container-architecture linux/amd64
+-P ubuntu-latest=catthehacker/ubuntu:full-latest
+
+
+之后只需要：
+
+act
+
+
+就能自动使用完整 runner。
+
+---
+
+🧱 第六步：处理 Secrets（本地调试必备）
+
+你可以创建 .secrets 文件：
+
+MY_TOKEN=xxxx
+DB_PASSWORD=xxxx
+
+
+然后运行：
+
+act --secret-file .secrets
+
+
+这样你就能在本地完整模拟 CI/CD。
+
+---
+
+🧭 第七步：VSCode 插件辅助（可选但很适合你）
+
+安装插件：
+
+GitHub Actions by GitHub
+
+它能：
+
+• 自动补全 YAML
+• 检查语法
+• 一键触发 act
+• 可视化查看 workflow 结构
+
+
+非常适合你这种喜欢“可维护、可分享”的工作流设计方式。
+
+---
+
+🎉 到这里，你的本地 GitHub Actions 调试环境就搭建好了
+
+你现在可以：
+
+• 本地跑 CI/CD
+• 本地调试失败的 job
+• 本地模拟 push/pull_request
+• 本地验证 Docker、Gradle、Spring Boot 等步骤
+
+
+---
+
+如果你愿意，我可以帮你继续做一件事：
+为你的项目生成一个完整的 .actrc + .secrets 模板，并优化你的 workflow 结构，让本地调试更顺畅。
+
+你想让我帮你生成模板，还是先跑一个 workflow 看看效果呢。
+
+----
 
