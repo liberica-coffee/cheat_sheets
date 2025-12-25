@@ -61,3 +61,100 @@ run: |
 ---
 
 如果你愿意，我可以帮你把你现有的 workflow 全部自动转换成新语法，你只要贴上 YAML 就行。
+
+
+----
+
+
+当然可以，Arron。我给你一个最清晰、最实战的示例，让你马上就能在 GitHub Actions 中使用新版 $GITHUB_OUTPUT。
+
+---
+
+🚀 如何使用新版 `$GITHUB_OUTPUT`
+
+新版语法的核心思想很简单：
+
+你把输出写进 $GITHUB_OUTPUT 文件，GitHub Actions 会自动把它变成 step output。
+
+下面我给你一个完整、可直接复制的示例。
+
+---
+
+✅ 1. 在某个 step 中设置输出
+
+steps:
+  - name: Build version
+    id: build
+    run: |
+      VERSION="1.2.3"
+      echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+
+这里做了两件事：
+
+• id: build 给这个 step 一个名字（后面引用用）
+• echo "version=1.2.3" >> $GITHUB_OUTPUT 设置输出变量 version
+
+
+---
+
+✅ 2. 在后续 step 中使用这个输出
+
+steps:
+  - name: Print version
+    run: echo "Version is ${{ steps.build.outputs.version }}"
+
+
+输出结果会是：
+
+Version is 1.2.3
+
+
+---
+
+📦 完整可运行示例 workflow
+
+name: Demo Output
+
+on:
+  push:
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set output
+        id: build
+        run: echo "version=1.2.3" >> $GITHUB_OUTPUT
+
+      - name: Use output
+        run: echo "Version is ${{ steps.build.outputs.version }}"
+
+
+---
+
+🧩 多行输出（官方支持）
+
+如果你需要输出多行内容：
+
+run: |
+  {
+    echo "tag=v1.0.0"
+    echo "notes<<EOF"
+    echo "Line 1"
+    echo "Line 2"
+    echo "EOF"
+  } >> $GITHUB_OUTPUT
+
+
+使用方式：
+
+echo "${{ steps.build.outputs.notes }}"
+
+
+---
+
+🎯 想让我帮你把你现有的 workflow 自动转换成新语法吗
+
+你只要把 YAML 贴给我，我可以帮你逐行改成最新、最规范的写法。
+
