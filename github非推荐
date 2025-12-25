@@ -1,0 +1,63 @@
+下面我给你一个最清晰、最实用的答案，直接告诉你：
+GitHub Actions 旧的 ::set-output 已经被弃用，官方推荐改成 Environment Files 写法。
+
+下面是旧写法 → 新写法的完整对照，基于你搜索到的内容 Zenn +1。
+
+---
+
+🔧 GitHub Actions：`::set-output` 最新写法
+
+❌ 旧写法（已弃用）
+
+run: echo "::set-output name=version::1.2.3"
+
+
+GitHub 已经明确标记为 deprecated，并建议改用环境文件 pakapaka.jp。
+
+---
+
+✅ 新写法（官方推荐）
+
+使用 $GITHUB_OUTPUT 文件写入输出变量：
+
+run: echo "version=1.2.3" >> $GITHUB_OUTPUT
+
+
+---
+
+📌 在 steps 中引用输出
+
+定义输出
+
+steps:
+  - id: build
+    run: echo "version=1.2.3" >> $GITHUB_OUTPUT
+
+
+使用输出
+
+steps:
+  - run: echo "Version is ${{ steps.build.outputs.version }}"
+
+
+---
+
+📘 为什么要改？
+
+GitHub 官方说明：
+set-output 和 save-state 将被弃用，建议改用 Environment Files Zenn +1。
+
+---
+
+🧩 额外示例：多行输出
+
+run: |
+  {
+    echo "tag=${{ env.IMAGE_TAG }}"
+    echo "repo=${{ env.ECR_REPOSITORY }}"
+  } >> $GITHUB_OUTPUT
+
+
+---
+
+如果你愿意，我可以帮你把你现有的 workflow 全部自动转换成新语法，你只要贴上 YAML 就行。
