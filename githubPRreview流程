@@ -1,0 +1,128 @@
+Arron，我给你一个实战型、一步到位的 GitHub Pull Request Review 操作指南。
+内容基于 GitHub 官方文档 はてなブログ +2整理，确保你在浏览器里能完整走通 review → approve 的流程。
+
+---
+
+🧭 一、在 GitHub 浏览器上如何进行 Pull Request Review
+
+1. 打开要 review 的 PR
+
+1. 进入仓库
+2. 点击顶部的 Pull requests
+3. 找到你要 review 的 PR 并点进去
+（如果你是 reviewer，会看到 “Review requested”）
+
+
+---
+
+📝 二、Review 时要检查哪些点（专业工程师 checklist）
+
+下面是团队常用的专业检查点，你可以按你的项目风格调整：
+
+🔧 代码质量
+
+• 命名是否清晰、统一
+• 是否有重复代码
+• 是否有明显 bug 或逻辑漏洞
+• 是否符合项目的编码规范（Kotlin/Java/JS 等）
+
+
+🧩 设计与结构
+
+• 是否破坏模块边界
+• 是否引入不必要的依赖
+• 是否有更简洁的实现方式
+• 是否影响现有接口或兼容性
+
+
+🧪 测试
+
+• 是否新增/修改了对应的测试
+• 测试是否覆盖关键逻辑
+• CI 是否通过（GitHub Actions 状态）
+
+
+📄 文档与注释
+
+• 是否需要更新 README、API 文档
+• 是否有必要的注释说明复杂逻辑
+
+
+🔐 安全与配置
+
+• 是否误提交敏感信息（token、密码）
+• 配置文件是否合理（Dockerfile、compose、application.yml）
+
+
+🧹 其他
+
+• 是否包含无关文件（log、临时文件）
+• 是否需要 squash commit
+• 是否符合 PR 模板要求
+
+
+---
+
+👀 三、在 GitHub 上如何查看代码差异
+
+在 PR 页面顶部点击：
+
+Files changed
+
+你可以：
+
+• 查看每个文件的 diff
+• 在某一行上悬停 → 点击 “+” 添加评论
+• 添加多条行级评论
+• 添加整体评论（summary）
+
+
+官方文档也说明了这个流程 GitHub Docs。
+
+---
+
+✅ 四、Review 完成后如何 Approve
+
+在 PR 页面右上角或 Files changed 页面顶部，你会看到：
+
+Review changes 按钮
+
+（有时显示为 “Add your review”）
+
+点击后会出现三个选项：
+
+选项	含义	
+Comment	仅评论，不影响合并	
+Approve	通过 review，允许合并	
+Request changes	要求修改，阻止合并	
+
+
+Approve 的步骤：
+
+1. 点击 Review changes
+2. 选择 Approve
+3. 可写可不写评论
+4. 点击 Submit review
+
+
+官方文档也明确说明了这个流程 GitHub Docs。
+
+---
+
+🏁 五、Approve 后会发生什么？
+
+• 如果该分支设置了 “需要至少 1 个 approval”，PR 会变成可合并状态
+• 如果你是最后一个 reviewer，PR 会显示绿色的 “Merge pull request”
+• 你也可以让作者自己 merge（看团队习惯）
+
+
+---
+
+📌 引用来源
+
+Sources:  はてなブログ +2
+
+---
+
+如果你愿意，我可以帮你做一个适合你团队的 PR Review Checklist 模板（Markdown 版），你们可以直接放到仓库里使用。
+
