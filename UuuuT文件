@@ -92,3 +92,170 @@ null	"U123"	user_id = 'U123'
 
 如果你愿意，我可以继续帮你把这个 SQL 改成 动态分页版、JOIN 版、或 Repository 层的 Kotlin 写法。
 
+
+当然可以调试，而且 MyBatis + Spring Boot + Kotlin + PostgreSQL 的调试方式非常明确。
+我给你一套 从 SQL → MyBatis → Kotlin → DB 的完整排查流程，让你能快速定位错误。
+
+下面的方法都是你现在的架构（Spring Boot + Kotlin + Gradle + MyBatis + PostgreSQL）可以直接使用的。
+
+---
+
+🧭 第一步：打开 MyBatis SQL 日志（最重要）
+
+你必须先看到 MyBatis 最终执行到 PostgreSQL 的 SQL，否则根本无法判断问题。
+
+在 application.yml 加上：
+
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+
+或者 application.properties：
+
+mybatis.configuration.log-impl=org.apache.ibatis.logging.stdout.StdOutImpl
+
+
+效果：
+控制台会打印出：
+
+==>  Preparing: SELECT * FROM your_table WHERE shop_id = ?
+==> Parameters: A001(String)
+<==      Total: 1
+
+
+你就能看到：
+
+• 最终 SQL 是什么
+• 参数是什么
+• 是否命中 <choose>
+• 是否传入 null 或空字符串
+
+
+---
+
+🧭 第二步：确认 Kotlin 参数是否正确传入
+
+你的 XML 里写的是：
+
+<when test="shopId != null and shopId != ''">
+
+
+那么 Kotlin 的参数必须是：
+
+data class QueryParam(
+    val shopId: String?,
+    val userId: String
+)
+
+
+调用时：
+
+mapper.selectSomething(QueryParam(shopId = null, userId = "U123"))
+
+
+⚠️ 如果你传的是空白 " "（有空格），MyBatis 会认为它不是空字符串
+→ <when> 会被命中
+→ SQL 会变成 shop_id = ' '
+→ PostgreSQL 查不到数据
+
+---
+
+🧭 第三步：检查 MyBatis XML 是否被正确加载
+
+常见错误：
+
+• XML 文件名与 Mapper 接口不匹配
+• XML 放错目录
+• namespace 不一致
+
+
+确认 XML 头部：
+
+<mapper namespace="com.example.YourMapper">
+
+
+Kotlin 接口：
+
+@Mapper
+interface YourMapper {
+    fun selectSomething(param: QueryParam): List<YourResultType>
+}
+
+
+---
+
+🧭 第四步：检查 PostgreSQL 的字段名是否一致
+
+你 XML 写的是：
+
+shop_id = #{shopId}
+
+
+请确认 PostgreSQL 里字段名是：
+
+shop_id
+
+
+而不是：
+
+shopId
+shopID
+shopid
+
+
+PostgreSQL 对大小写敏感（尤其是带引号时）。
+
+---
+
+🧭 第五步：用 psql 或 DBeaver 手动执行 SQL
+
+从日志里复制 MyBatis 打印的 SQL：
+
+SELECT * FROM your_table WHERE shop_id = 'A001';
+
+
+在 PostgreSQL 客户端执行：
+
+• 如果能查到 → MyBatis 参数没传对
+• 如果查不到 → 数据库本身没有这条记录
+• 如果报错 → SQL 写法有问题
+
+
+---
+
+🧭 第六步：如果 `<choose>` 没有按预期工作
+
+你可以临时打印参数：
+
+<!-- 调试用 -->
+<!-- <if test="_parameter != null"> -->
+<!--     参数: shopId=${shopId}, userId=${userId} -->
+<!-- </if> -->
+
+
+或者在 Kotlin 里：
+
+println("shopId=${param.shopId}, userId=${param.userId}")
+
+
+---
+
+🧭 第七步：我可以帮你进一步定位
+
+为了更快帮你找到问题，你可以贴出：
+
+1. MyBatis XML 的完整片段
+2. Kotlin Mapper 接口
+3. 调用代码（service 或 controller）
+4. 控制台打印的 MyBatis SQL 日志
+5. PostgreSQL 报错内容
+
+
+只要你贴出这些，我可以直接告诉你是哪一行导致错误，并给你修复后的版本。
+
+---
+
+如果你愿意，我可以帮你写一个 完整可运行的最小示例（Spring Boot + Kotlin + MyBatis + PostgreSQL），你可以直接跑起来对照调试。
+
+
