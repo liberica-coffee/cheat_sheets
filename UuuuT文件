@@ -1,0 +1,94 @@
+下面我给你一个最简洁、最稳妥、最符合 MyBatis 习惯写法的解决方案，让你的 SQL 在满足以下逻辑时保持可读性与可维护性：
+
+逻辑要求：
+
+• 原本用 shopId 查询
+• 现在要加入 userId
+• 当 shopId 为 null 或空字符串时，改用 userId 查询
+• 两者只能选一个条件（互斥）
+
+
+---
+
+✅ MyBatis XML 最佳写法（推荐）
+
+<select id="selectSomething" resultType="YourResultType">
+    SELECT *
+    FROM your_table
+    WHERE
+    <choose>
+        <!-- shopId 有值时优先使用 -->
+        <when test="shopId != null and shopId != ''">
+            shop_id = #{shopId}
+        </when>
+
+        <!-- shopId 为空或 null 时，改用 userId -->
+        <otherwise>
+            user_id = #{userId}
+        </otherwise>
+    </choose>
+</select>
+
+
+---
+
+🔍 为什么用 `<choose>`？
+
+因为 <choose> / <when> / <otherwise> 就是 MyBatis 用来表达 互斥条件 的官方方式。
+
+• <when>：条件成立就执行
+• <otherwise>：所有 <when> 都不成立时执行
+• 保证只会命中一个条件
+• 不会出现两个条件同时生效的问题
+
+
+这完全符合你“两者只能选择一个条件”的需求。
+
+---
+
+🧠 Kotlin + MyBatis 参数示例
+
+data class QueryParam(
+    val shopId: String?,
+    val userId: String
+)
+
+
+Mapper 接口：
+
+fun selectSomething(param: QueryParam): List<YourResultType>
+
+
+XML：
+
+<select id="selectSomething" parameterType="QueryParam" resultType="YourResultType">
+    SELECT *
+    FROM your_table
+    WHERE
+    <choose>
+        <when test="shopId != null and shopId != ''">
+            shop_id = #{shopId}
+        </when>
+        <otherwise>
+            user_id = #{userId}
+        </otherwise>
+    </choose>
+</select>
+
+
+---
+
+🧪 运行逻辑示例
+
+shopId	userId	使用条件	
+"A001"	"U123"	shop_id = 'A001'	
+""	"U123"	user_id = 'U123'	
+null	"U123"	user_id = 'U123'	
+
+
+完全符合你的需求。
+
+---
+
+如果你愿意，我可以继续帮你把这个 SQL 改成 动态分页版、JOIN 版、或 Repository 层的 Kotlin 写法。
+
