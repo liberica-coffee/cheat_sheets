@@ -1,0 +1,158 @@
+下面我给你一份清晰、实用、一步到位的 protodep 使用指南，适合你这种偏系统化、可复现的工作风格。protodep 本质上是一个 自动管理 Protobuf 依赖的工具，让你不用手动 git clone、更新子模块、维护 include path。
+
+---
+
+🚀 protodep 使用方法（完整指南）
+
+📌 1. 安装 protodep
+
+protodep 是 Go 工具，直接用 go install：
+
+go install github.com/stormcat24/protodep@latest
+
+
+安装后确保 $GOPATH/bin 在 PATH 中：
+
+protodep --version
+
+
+---
+
+📁 2. 在项目中创建 protodep.toml
+
+在你的项目根目录创建：
+
+protodep.toml
+
+
+示例：
+
+proto_outdir = "third_party"
+
+[[dependencies]]
+  target = "github.com/envoyproxy/protoc-gen-validate"
+  branch = "main"
+  path = "validate"
+
+
+字段说明：
+
+字段	说明	
+proto_outdir	下载的 proto 文件放在哪里	
+target	Git 仓库地址	
+branch / tag / revision	指定版本	
+path	仓库中 proto 文件所在目录	
+
+
+你可以列多个依赖，非常适合你这种模块化管理方式。
+
+---
+
+📥 3. 下载依赖（核心命令）
+
+protodep up
+
+
+它会自动：
+
+• clone 或更新依赖仓库
+• 把 proto 文件复制到 proto_outdir
+• 保持版本一致性
+
+
+这一步是 protodep 的核心价值。
+
+---
+
+🔄 4. 更新依赖
+
+如果你想强制重新下载：
+
+protodep up --force
+
+
+---
+
+🧹 5. 清理依赖
+
+protodep clean
+
+
+会删除 proto_outdir 下由 protodep 管理的文件。
+
+---
+
+🧪 6. 常见目录结构（推荐）
+
+你喜欢可复现、可共享的结构，这个布局最适合你：
+
+your-project/
+  protodep.toml
+  third_party/
+    validate/
+    google/
+    grpc/
+  proto/
+    your_service.proto
+
+
+然后 protoc 编译时：
+
+protoc \
+  -I proto \
+  -I third_party \
+  your_service.proto \
+  --go_out=...
+
+
+---
+
+💡 7. protodep 的优势（为什么值得用）
+
+• 不需要 git submodule（你应该会很讨厌 submodule 的不可控性）
+• 依赖版本可锁定，可复现
+• 团队成员拉代码即可构建
+• CI/CD 中也能稳定运行
+• 结构清晰，适合你喜欢的“模块化 + 文档化”风格
+
+
+---
+
+📘 8. 最小可运行示例
+
+protodep.toml：
+
+proto_outdir = "third_party"
+
+[[dependencies]]
+  target = "https://github.com/googleapis/googleapis"
+  revision = "master"
+  path = "google"
+
+
+执行：
+
+protodep up
+
+
+生成：
+
+third_party/google/...
+
+
+即可在你的 proto 中：
+
+import "google/api/annotations.proto";
+
+
+---
+
+如果你愿意，我可以帮你：
+
+• 为你的项目生成 最佳实践版 protodep.toml
+• 设计 可复现的 proto 依赖结构
+• 给出 protoc + Makefile + CI/CD 的完整组合方案
+
+
+你想让我帮你生成一个适合你当前项目的 protodep.toml 吗？
+
