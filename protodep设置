@@ -1,0 +1,184 @@
+下面我给你一个完全针对 HTTPS 拉取 protodep 依赖的、可直接执行的配置指南。
+你团队没有 proxy → 那 HTTPS 拉取只需要 正确设置 GitHub 认证，protodep 就能正常工作。
+
+protodep 本身没有“HTTPS 设置”，它完全依赖 git clone https://… 的行为。
+所以你只需要让 git 能通过 HTTPS 访问 GitHub 私有仓库。
+
+---
+
+🎯 你要做的只有两件事
+
+✅ 1. 为 HTTPS 设置 GitHub Token（因为你开启了 2FA）
+
+HTTPS + GitHub + 2FA → 不能用密码
+必须用 Personal Access Token (PAT)。
+
+步骤：创建 Token
+
+GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
+
+权限至少需要：
+
+• repo
+
+
+复制 token（只显示一次）。
+
+---
+
+✅ 2. 把 Token 配置给 git（HTTPS 方式）
+
+你有两种方式：推荐方式在最前面。
+
+---
+
+🥇 方法 A：使用 `~/.netrc`（最稳定、最干净、protodep 官方推荐方式）
+
+创建或编辑：
+
+~/.netrc
+
+
+写入：
+
+machine github.com
+  login <your-github-username>
+  password <your-token>
+
+
+然后：
+
+chmod 600 ~/.netrc
+
+
+完成后，HTTPS clone 会自动使用 token：
+
+git clone https://github.com/your-org/your-repo.git
+
+
+protodep 也会自动使用：
+
+protodep up
+
+
+---
+
+🥈 方法 B：使用 git credential helper（也可以）
+
+git config --global credential.helper store
+
+
+然后执行一次：
+
+git clone https://github.com/your-org/your-repo.git
+
+
+git 会提示你输入：
+
+• username
+• token（作为密码）
+
+
+之后 git 会把它存到：
+
+~/.git-credentials
+
+
+protodep 也会自动读取。
+
+---
+
+🧩 protodep 的配置（HTTPS URL）
+
+你的 protodep/proto.toml 应该写成：
+
+[[dependencies]]
+  target = "github.com/your-org/your-private-repo"
+  branch = "main"
+  type = "git"
+  url = "https://github.com/your-org/your-private-repo.git"
+  path = "proto"
+
+
+然后：
+
+protodep up
+
+
+就能正常拉取。
+
+---
+
+🧪 常见错误排查（你团队可能会遇到）
+
+❌ 1. git 里残留 proxy
+
+检查：
+
+git config --global --get http.proxy
+git config --global --get https.proxy
+
+
+如果有，清除：
+
+git config --global --unset http.proxy
+git config --global --unset https.proxy
+
+
+---
+
+❌ 2. 环境变量里残留 proxy
+
+检查：
+
+echo $HTTP_PROXY
+echo $HTTPS_PROXY
+
+
+如果有：
+
+unset HTTP_PROXY
+unset HTTPS_PROXY
+
+
+---
+
+❌ 3. Token 权限不足
+
+确保至少有：
+
+• repo
+
+
+---
+
+🎉 总结（你只需要做这两步）
+
+1. 创建 GitHub Token（因为你有 2FA）
+
+2. 把 Token 写入 `~/.netrc` 或 git credential helper
+
+之后：
+
+protodep up
+
+
+就能正常通过 HTTPS 拉取私有仓库。
+
+---
+
+如果你愿意，我可以帮你：
+
+• 检查你当前的 git 环境是否正确
+• 生成一个自动检测脚本（macOS / Linux）
+• 帮你团队写一个 onboarding 文档，让新人 5 分钟就能跑通 protodep + HTTPS
+
+
+你想让我帮你生成哪一个，我就可以马上做。
+
+
+https://copilot.microsoft.com/shares/prtKhyWprZVse6y6qorhP
+
+
+
+
