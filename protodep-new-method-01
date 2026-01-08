@@ -1,0 +1,85 @@
+
+
+---
+
+🔐 `--basic-auth-password` 的值从哪里来？
+
+protodep 在使用 --use-https 并访问 私有 GitHub 仓库 时，需要 Basic Auth。
+这里的 basic-auth-password 不是你的 GitHub 登录密码（绝对不要用登录密码）。
+
+它应该是：
+
+✅ GitHub Personal Access Token (PAT)
+
+也就是 GitHub 的 个人访问令牌。
+
+---
+
+🧭 如何获取 GitHub Personal Access Token（PAT）
+
+下面是最常用、最安全的方式（适用于 protodep）：
+
+1. 打开 GitHub → Settings
+
+右上角头像 → Settings
+
+2. 左侧菜单 → Developer settings
+
+最底部。
+
+3. Personal access tokens → Tokens (classic)
+
+选择 Generate new token (classic)
+（protodep 目前最兼容 classic token）
+
+4. 选择权限（Scopes）
+
+最少需要：
+
+• repo（访问私有仓库）
+• read:packages（如果你拉的是 GitHub Packages）
+
+
+一般只勾 repo 就够了。
+
+5. 生成 Token
+
+GitHub 会给你一个 只显示一次 的字符串，例如：
+
+ghp_1234567890abcdef1234567890abcdef1234
+
+
+这就是你要填入：
+
+--basic-auth-password=ghp_1234567890abcdef1234567890abcdef1234
+
+
+---
+
+🧪 最终命令示例
+
+protodep up \
+  --use-https \
+  --basic-auth-username=your-github-username \
+  --basic-auth-password=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+
+---
+
+⚠️ 安全提醒
+
+• 不要把 Token 写进仓库
+• 不要写进 Makefile 或脚本（除非用环境变量）
+• 推荐使用环境变量：
+
+
+export GITHUB_TOKEN=ghp_xxx
+protodep up --use-https \
+  --basic-auth-username=$GITHUB_USER \
+  --basic-auth-password=$GITHUB_TOKEN
+
+
+---
+
+
+
