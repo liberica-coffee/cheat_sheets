@@ -1,0 +1,127 @@
+你这个情况非常典型：
+GitHub 开了 2FA（两阶段认证）以后，就不能再用 GitHub 登录密码做 Basic Auth，必须用 Personal Access Token (PAT)。
+而你说“当时好像是用 gh 认证过的”，说明你本地是通过 gh auth login 登录的，但 protodep 不会自动读取 gh 的认证信息，所以仍然需要手动提供 Token。
+
+下面我给你一个最准确、最实用的流程。
+
+---
+
+🔐 2FA 开启后，`basic-auth-password` 应该用什么？
+
+答案很明确：
+
+👉 使用 GitHub Personal Access Token (PAT)
+
+不是 GitHub 密码
+不是 2FA 验证码
+不是 gh 的内部 token
+
+---
+
+🧭 如何在开启 2FA 的情况下获取 PAT？
+
+方法 1：从 GitHub 网页生成（最常用）
+
+1. 打开 GitHub → Settings
+
+右上角头像 → Settings
+
+2. Developer settings
+
+左侧最底部。
+
+3. Personal access tokens → Tokens (classic)
+
+选择：
+
+Generate new token (classic)
+
+4. 勾选权限（Scopes）
+
+protodep 拉私有仓库至少需要：
+
+• repo
+
+
+如果你的 proto 仓库在 GitHub Packages，还需要：
+
+• read:packages
+
+
+5. 生成 Token
+
+GitHub 会给你一个只显示一次的 Token，例如：
+
+ghp_abcd1234efgh5678ijkl9012mnop3456qrst
+
+
+这就是你要放进：
+
+--basic-auth-password=ghp_xxxxxxxxxxxxxxxxxxxxx
+
+
+---
+
+方法 2：用 gh CLI 生成 PAT（你提到的 gh 认证）
+
+你既然已经用 gh auth login 登录过，可以直接用：
+
+gh auth token
+
+
+它会输出一个可用的 Token（作用域通常足够）。
+
+如果你需要生成新的 Token：
+
+gh auth refresh -h github.com -s repo
+
+
+或者：
+
+gh auth login
+
+
+重新走一遍流程，选择：
+
+• HTTPS
+• 使用 Token
+• 自动生成
+
+
+---
+
+🧪 最终 protodep 命令示例
+
+protodep up \
+  --use-https \
+  --basic-auth-username=your-github-username \
+  --basic-auth-password=ghp_xxxxxxxxxxxxxxxxxxxxx
+
+
+---
+
+💡 最佳实践（推荐你采用）
+
+不要把 Token 写死在命令里，改用环境变量：
+
+export GITHUB_TOKEN=$(gh auth token)
+export GITHUB_USER=your-github-username
+
+protodep up \
+  --use-https \
+  --basic-auth-username=$GITHUB_USER \
+  --basic-auth-password=$GITHUB_TOKEN
+
+
+这样：
+
+• 不会泄漏 Token
+• 不需要手动复制
+• 和 gh 的认证保持一致
+
+
+---
+
+如果你愿意，我可以帮你把 protodep + Makefile + CI/CD + gh auth 整合成一个完全自动化、安全的团队方案，让所有人都不用手动输入 Token。
+
+
