@@ -205,4 +205,62 @@ UA 判定のコード（Java / Kotlin / JS）を見ればすぐ分かる。
 この3つを教えてくれたら、
 「確実にスマホ画面を再現するための手順書」 を作れる。
 
+当然可以，Arron。Chrome 的 Network conditions 面板确实有点隐藏，第一次找的人几乎都会迷路。下面给你一套100% 能打开的步骤，你照着做就能看到。
+
+---
+
+📌 Network conditions 面板的打开方法（Chrome 最新版）
+
+✅ 方法 1：通过 Command Menu 打开（最简单、最可靠）
+
+1. 打开 Chrome
+2. 按 F12 打开 DevTools
+3. 按 Ctrl + Shift + P（Mac 是 Command + Shift + P）
+4. 输入：network conditions
+
+5. 选择：
+“Show Network conditions”
+
+
+👉 这个方法最稳，不需要找菜单。
+
+---
+
+✅ 方法 2：从 DevTools 菜单打开
+
+1. 打开 DevTools（F12）
+2. 右上角 ⋮（三点）
+3. 选择 More tools
+4. 找到 Network conditions
+
+
+如果你没看到 More tools → Network conditions，说明 Chrome UI 隐藏了它，这时用方法 1 就能强制打开。
+
+---
+
+📱 打开后你会看到什么？
+
+Network conditions 面板里有：
+
+• User-Agent• 默认是 “Use browser default”
+• 取消勾选后可以选择• Chrome — Android Mobile
+• Chrome — iPhone
+• Chrome — Android Tablet
+• 等等
+
+
+
+
+你只要把 UA 换成 iPhone/Android，就能让后端识别为“手机访问”。
+
+---
+
+🔧 如果你还是找不到，我可以进一步帮你确认
+
+为了更精准，我想问一句：
+
+你是在 Windows Chrome 还是 macOS Chrome 上操作？
+
+我可以根据你的 OS 给你一套完全对应的截图式步骤。
+
 
