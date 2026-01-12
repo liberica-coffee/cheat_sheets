@@ -120,3 +120,89 @@ React / Vue / Thymeleaf などでスマホ用ビルドが別になっている�
 
 必要なら、あなたのプロジェクト構成に合わせて 再現手順をドキュメント化 することもできるよ。
 
+A の User-Agent 判定が効いていない場合の変更方法を、実務で一番確実なやり方から順番にまとめるね。
+Arron の環境だと Chrome DevTools で UA をスマホに変えるのが最速で、ほぼ確実に再現できる。
+
+---
+
+📱 A. User-Agent をスマホに変更する方法（Chrome）
+
+✅ 方法1：Network conditions で UA をスマホに変更
+
+1. Chrome を開く
+2. F12（DevTools を開く）
+3. 右上の「⋮」 → More tools → Network conditions
+4. “User-Agent” の Use browser default のチェックを外す
+5. プルダウンからスマホ UA を選ぶ• Chrome — Android Mobile
+• Chrome — iPhone
+
+
+
+これで サーバ側の UA 判定がスマホ扱いになる。
+
+---
+
+✅ 方法2：Device Toolbar（スマホアイコン）＋ UA 変更
+
+1. DevTools を開く
+2. 左上のスマホアイコン（Toggle Device Toolbar）を押す
+3. 上部のデバイス選択から• iPhone 12
+• Pixel 7
+などを選ぶ
+
+4. さらに UA をスマホに固定したい場合は
+→ Network conditions で UA をスマホに変更
+
+
+※ Device Toolbar だけだと 画面幅はスマホでも UA は PC のままのことがある。
+→ だから UA 変更が必須。
+
+---
+
+📱 Safari（Mac）の場合
+
+1. Safari → Preferences → Advanced
+2. 一番下の “Show Develop menu in menu bar” を ON
+3. メニューバー → Develop → User Agent
+4. iPhone / iPad を選択
+
+
+---
+
+📱 curl で API をスマホ UA で叩く（API レベルの再現）
+
+もし API 側の挙動もスマホ用に変わるなら、curl で UA を指定して再現できる。
+
+curl -H "User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)" \
+     http://localhost:8080/your/api
+
+
+---
+
+🔍 もし UA を変えてもスマホ画面が出ない場合
+
+次のどれかが原因：
+
+• スマホ画面が URL 別（/sp/） になっている
+• スマホ画面が CSS のブレークポイントのみで切り替わる
+• スマホ画面が Cookie / Session / Feature Flag 依存
+• スマホ画面が JS の条件分岐で切り替わる
+
+
+UA 判定のコード（Java / Kotlin / JS）を見ればすぐ分かる。
+
+---
+
+✨ のプロジェクトに合わせてもっと精密に再現手順作れるよ
+
+もしよければ：
+
+• スマホ画面の切り替えロジック（UA？CSS？URL？）
+• フロントの技術（React / Vue / Thymeleaf / JSP など）
+• スマホ画面の URL
+
+
+この3つを教えてくれたら、
+「確実にスマホ画面を再現するための手順書」 を作れる。
+
+
