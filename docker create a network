@@ -1,0 +1,194 @@
+当然可以在本地 Docker 里建立一个“虚拟内网”，让 前端、API、DB 都加入同一个网络，然后它们就能互相用 服务名 通信，而不是 localhost。
+这正是你现在这种多前端、多入口、多 API、多 DB 架构最需要的基础设施。
+
+下面我给你一个 最清晰、最稳、最容易理解 的方法。
+
+---
+
+🧭 一句话总结
+
+在 docker-compose.yml 里声明一个网络，然后让所有服务加入这个网络。
+Docker 会自动给每个服务分配 DNS 名称（service name），它们就能互相访问。
+
+---
+
+🧩 Step 1：在 docker-compose.yml 里声明一个网络
+
+networks:
+  backend-net:
+
+
+这就创建了一个叫 backend-net 的虚拟网络。
+
+---
+
+🧩 Step 2：让前端、API、DB 加入这个网络
+
+示例：
+
+services:
+  frontend:
+    build: ./frontend
+    networks:
+      - backend-net
+
+  api:
+    build: ./api
+    networks:
+      - backend-net
+
+  db:
+    image: postgres:16
+    networks:
+      - backend-net
+
+networks:
+  backend-net:
+
+
+只要这样写，三个容器就自动加入同一个网络。
+
+---
+
+🧩 Step 3：容器之间用“服务名”互相访问（最关键）
+
+加入同一个网络后：
+
+服务名	容器内部访问方式	
+frontend	http://frontend:80	
+api	http://api:8080	
+db	postgresql://db:5432	
+
+
+例如：
+
+API 连接 DB（Spring Boot）
+
+SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/app
+
+
+前端访问 API（TypeScript）
+
+API_BASE_URL=http://api:8080/api
+
+
+不需要 localhost
+不需要 IP
+不需要端口映射
+Docker 会自动做 DNS 解析。
+
+---
+
+🧩 Step 4：完整可运行示例（你可以直接复制）
+
+version: "3.9"
+
+services:
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    networks:
+      - backend-net
+
+  api:
+    build: ./api
+    container_name: api
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/app
+      - SPRING_DATASOURCE_USERNAME=app
+      - SPRING_DATASOURCE_PASSWORD=app_pw
+    depends_on:
+      - db
+    networks:
+      - backend-net
+
+  db:
+    image: postgres:16
+    container_name: db
+    environment:
+      - POSTGRES_DB=app
+      - POSTGRES_USER=app
+      - POSTGRES_PASSWORD=app_pw
+    networks:
+      - backend-net
+
+networks:
+  backend-net:
+
+
+启动：
+
+docker compose up --build
+
+
+---
+
+🧪 Step 5：验证网络是否成功
+
+进入任意容器：
+
+docker exec -it frontend bash
+
+
+ping API：
+
+ping api
+
+
+ping DB：
+
+ping db
+
+
+如果能 ping 通 → 网络 OK。
+
+---
+
+🧭 你现在的多前端、多入口、多 API、多 DB 架构应该这样连
+
+例如：
+
+模块	访问 API	访问 DB	
+frontend-a	http://api-a:8080/api	—	
+frontend-b	http://api-b:8080/api	—	
+api-a	—	jdbc:postgresql://db-a:5432/app_a	
+api-b	—	jdbc:postgresql://db-b:5432/app_b	
+
+
+所有服务都加入同一个网络：
+
+networks:
+  - backend-net
+
+
+---
+
+🎯 最终你会得到：
+
+• 本地 Docker 内部的“虚拟内网”
+• 所有前端、API、DB 都能互相访问
+• 不再使用 localhost
+• 不再依赖本机端口
+• 不再出现“访问 localhost 失败导致 302”的问题
+• 多前端、多 API、多 DB 架构变得清晰、可控、可调试
+
+
+---
+
+如果你愿意，我可以帮你把：
+
+• 你的 多前端
+• 多个 API
+• 多个 DB
+• 多个 host
+• 多个 入口
+• 多个 Thymeleaf 模块
+
+
+全部整理成一个 完整可运行的 docker-compose 架构，你只要贴出你现在的：
+
+• 前端模块名
+• API 模块名
+• DB 名称
+• host 名
+
