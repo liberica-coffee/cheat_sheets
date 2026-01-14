@@ -1,0 +1,151 @@
+Thymeleaf 本身不是前端框架，而是 Java 服务端模板引擎，所以它的“插件生态”主要集中在：
+
+• IDE 插件（IntelliJ / Eclipse）
+• 浏览器插件（调试 HTML 模板）
+• Thymeleaf 扩展方言（Dialect）
+• Spring Boot 集成增强
+
+
+下面给你一份真正实用、工程师常用的 Thymeleaf 插件清单。
+
+---
+
+🧩 一、IDE 插件（最常用、最有价值）
+
+🔹 IntelliJ IDEA — Thymeleaf Plugin
+
+IntelliJ 自带对 Thymeleaf 的支持，但这个插件能增强：
+
+• 语法高亮
+• 自动补全
+• 标签闭合
+• 表达式检查（${}、th:if、th:each）
+• 跳转到变量定义（Spring 项目中非常好用）
+
+
+👉 强烈推荐，基本是开发 Thymeleaf 的标配。
+
+---
+
+🔹 Eclipse — Thymeleaf Eclipse Plugin
+
+如果你用 Eclipse，这个插件提供：
+
+• 语法高亮
+• 自动补全
+• 模板校验
+
+
+功能比 IntelliJ 弱一些，但也够用。
+
+---
+
+🧩 二、浏览器插件（调试 HTML 模板）
+
+🔹 Thymeleaf Inspector（Chrome 插件）
+
+这个插件可以在浏览器中：
+
+• 高亮 Thymeleaf 属性（th:if、th:each 等）
+• 显示解析后的 DOM 与原始模板的差异
+• 帮助你理解模板是如何被渲染的
+
+
+适合调试复杂模板。
+
+---
+
+🧩 三、Thymeleaf 扩展方言（Dialect 插件）
+
+Thymeleaf 支持“方言”（Dialect），可以扩展语法。
+
+🔹 Thymeleaf Layout Dialect（最常用）
+
+提供类似 JSP Tiles、Vue Layout 的功能：
+
+• 页面继承
+• 模板布局
+• 片段替换
+
+
+适合大型项目的页面结构管理。
+
+---
+
+🔹 Thymeleaf Extras — Spring Security
+
+用于在模板中直接使用权限判断：
+
+<div sec:authorize="hasRole('ADMIN')">Admin Only</div>
+
+
+非常适合权限控制页面。
+
+---
+
+🔹 Thymeleaf Extras — Java 8 Time
+
+让你在模板中更方便地格式化日期：
+
+<span th:text="${#temporals.format(date, 'yyyy-MM-dd')}"></span>
+
+
+---
+
+🔹 Ultraq Thymeleaf Expression Enhancements
+
+增强表达式能力，例如：
+
+• 字符串处理
+• 集合处理
+• 条件表达式增强
+
+
+---
+
+🧩 四、Spring Boot 相关增强
+
+🔹 Spring Boot DevTools（热部署）
+
+虽然不是 Thymeleaf 插件，但对 Thymeleaf 开发非常重要：
+
+• 模板修改后自动刷新
+• 无需重启服务
+• 大幅提升开发效率
+
+
+---
+
+🧩 五、前端开发辅助插件（间接提升 Thymeleaf 开发体验）
+
+虽然不是 Thymeleaf 专用，但在实际开发中非常常用：
+
+• LiveReload（自动刷新页面）
+• BrowserSync（多设备同步调试）
+• JSON Formatter（调试接口）
+• Wappalyzer（识别技术栈）
+
+
+---
+
+🧭 总结：最值得安装的 5 个插件
+
+类型	插件	用途	
+IDE	IntelliJ Thymeleaf Plugin	自动补全、语法检查	
+浏览器	Thymeleaf Inspector	调试模板渲染	
+方言	Thymeleaf Layout Dialect	页面布局、继承	
+方言	Thymeleaf Extras Security	权限控制	
+Spring	Spring Boot DevTools	热部署、自动刷新	
+
+
+---
+
+如果你告诉我你现在使用的是：
+
+• IntelliJ / Eclipse / VS Code
+• Spring Boot 版本
+• 是否使用 Thymeleaf Layout
+• 是否有权限控制需求
+
+
+我可以帮你挑出最适合你项目的插件组合，甚至帮你写一份团队可用的“Thymeleaf 开发最佳实践”。
