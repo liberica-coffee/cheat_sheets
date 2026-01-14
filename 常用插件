@@ -1,0 +1,198 @@
+当然可以继续扩展。前端开发者在 Chrome 上最常用的插件，大致分成 调试类、性能类、网络类、UI/样式类、框架专用类、效率类 六大类。我给你整理了一份真正“工程师常用、能提升效率”的精选列表，而不是那种泛泛而谈的合集。
+
+下面这些插件都是在真实项目中非常常用的。
+
+---
+
+🧩 一、框架专用调试插件（React / Vue / Svelte / Angular）
+
+🔹 React Developer Tools
+
+调试 React 组件树、props、state、hooks。
+
+🔹 Vue.js Devtools
+
+查看组件树、Vuex 状态、事件流，非常适合调试复杂 Vue 应用。
+
+🔹 Svelte Devtools
+
+查看 Svelte 组件结构、状态变化。
+
+🔹 Angular DevTools
+
+查看组件层级、变更检测、性能分析。
+
+这些插件是框架开发者的“必装”。
+
+---
+
+🌐 二、网络调试类插件（API 调试、跨域、Mock）
+
+🔹 Postman Interceptor
+
+让 Postman 捕获浏览器请求，调试 API 非常方便。
+
+🔹 ModHeader
+
+修改请求头、响应头，常用于：
+
+• 模拟用户身份（Authorization）
+• 调试 CORS
+• 切换环境（X-Env: staging）
+
+
+🔹 Requestly
+
+可以：
+
+• 重写 URL
+• Mock 接口
+• 注入 JS/CSS
+• 拦截请求
+
+
+非常适合前后端联调。
+
+🔹 Talend API Tester（原名 Advanced REST Client）
+
+轻量级 API 调试工具。
+
+---
+
+🎨 三、样式 / UI 调试插件
+
+🔹 CSS Peeper
+
+一键查看页面的颜色、字体、样式，非常适合 UI 还原。
+
+🔹 WhatFont
+
+鼠标移动即可查看字体信息。
+
+🔹 ColorZilla
+
+吸取网页颜色，生成渐变、调色板。
+
+🔹 Page Ruler Redux
+
+测量页面元素尺寸、间距，UI 还原神器。
+
+---
+
+⚙️ 四、性能分析 / 页面结构类插件
+
+🔹 Lighthouse（内置）
+
+虽然 DevTools 已经有，但插件版可以批量跑。
+
+🔹 Wappalyzer
+
+识别网站使用的技术栈：
+
+• React / Vue / Next.js
+• Nginx / Apache
+• Cloudflare
+• GA / GTM
+
+
+非常适合分析第三方网站。
+
+🔹 Web Vitals
+
+实时显示：
+
+• LCP
+• FID
+• CLS
+
+
+适合性能优化。
+
+---
+
+🧪 五、调试工具增强类插件
+
+🔹 Redux DevTools
+
+调试 Redux 状态流、时间旅行（time travel）。
+
+🔹 JSON Formatter
+
+自动格式化 JSON 响应，调试 API 必备。
+
+🔹 XPath Helper
+
+快速定位 XPath，适合爬虫、自动化测试。
+
+🔹 Octotree
+
+GitHub 文件树浏览器，阅读源码非常方便。
+
+🔹 Chrome Logger
+
+后端（PHP/Node）可以把日志输出到 Chrome Console。
+
+---
+
+🧱 六、开发效率类插件（强烈推荐）
+
+🔹 Vimium
+
+在 Chrome 中使用 Vim 快捷键，效率飞升。
+
+🔹 Tab Manager Plus
+
+管理大量标签页，适合多项目开发。
+
+🔹 OneTab
+
+一键收纳所有标签页，减少内存占用。
+
+🔹 Session Buddy
+
+保存浏览器会话，崩溃后恢复非常方便。
+
+🔹 Daily.dev
+
+每天推送最新开发者资讯。
+
+---
+
+🧭 七、前端工程师常用插件组合（实战推荐）
+
+🟦 前端开发者常用组合
+
+• React DevTools / Vue DevTools
+• Redux DevTools
+• JSON Formatter
+• ModHeader
+• Requestly
+• Wappalyzer
+• WhatFont
+• Page Ruler Redux
+
+
+🟦 API 调试常用组合
+
+• Postman Interceptor
+• Talend API Tester
+• JSON Formatter
+• ModHeader
+
+
+🟦 UI/样式调试常用组合
+
+• CSS Peeper
+• WhatFont
+• ColorZilla
+• Page Ruler Redux
+
+
+---
+
+如果你愿意，我可以帮你做一份
+
+“Chrome 插件最佳实践清单（按你的工作流定制）”
+比如你现在在做多前端、多 API、多 DB 的 Docker 架构，我可以帮你挑出最适合你当前项目的插件组合。
+
+
