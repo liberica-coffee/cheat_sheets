@@ -1,0 +1,219 @@
+Kotlin 的开发体验本身已经非常优秀，但如果你想把 开发 + 调试 做到更顺畅、更高效，有一套插件组合能显著提升你的生产力。下面我给你整理一份 真正工程师常用、实战价值高的 Kotlin 插件清单，覆盖 IntelliJ、调试、协程、Spring Boot、序列化、性能分析等多个方向。
+
+---
+
+🧩 一、IntelliJ IDEA 官方 Kotlin 插件（核心）
+
+✔ Kotlin Plugin（官方内置）
+
+IntelliJ 自带的 Kotlin 插件提供：
+
+• 语法高亮
+• 自动补全
+• 代码检查
+• 调试器支持
+• 协程调试
+• Kotlin Script 支持
+
+
+这是 Kotlin 开发的基础，不需要额外安装。
+
+---
+
+🧩 二、Kotlin 调试增强插件（非常实用）
+
+🔹 1. Kotlin Coroutines Debugger（内置）
+
+调试协程时可以看到：
+
+• 协程状态（Active / Suspended）
+• 协程调用栈
+• 协程之间的关系
+
+
+在调试复杂异步逻辑时非常关键。
+
+---
+
+🔹 2. Async Stacktraces（内置）
+
+让你在调试协程或异步代码时看到完整的调用链，而不是断裂的 stacktrace。
+
+---
+
+🔹 3. Evaluate Expression（内置但非常强大）
+
+调试时可以直接执行 Kotlin 表达式：
+
+• 调试复杂数据结构
+• 临时修改变量
+• 调试 Lambda
+
+
+---
+
+🧩 三、Spring Boot + Kotlin 常用插件（强烈推荐）
+
+🔹 1. Spring Assistant
+
+增强 Spring Boot 的：
+
+• 配置提示
+• YAML 自动补全
+• Bean 跳转
+• @ConfigurationProperties 绑定检查
+
+
+Kotlin + Spring Boot 项目非常受益。
+
+---
+
+🔹 2. Spring Boot Tools（官方）
+
+提供：
+
+• 运行/调试 Spring Boot 应用
+• Actuator 端点可视化
+• 自动配置分析
+
+
+---
+
+🔹 3. Lombok Plugin（如果项目里混用 Lombok）
+
+虽然 Kotlin 不需要 Lombok，但很多混合项目仍然用它。
+
+---
+
+🧩 四、序列化 / JSON 调试插件
+
+🔹 1. Kotlinx Serialization IntelliJ Plugin
+
+如果你使用 kotlinx.serialization：
+
+• 自动补全
+• JSON Schema 支持
+• 序列化注解提示
+
+
+---
+
+🔹 2. Jackson Databind Helper（如果你用 Jackson）
+
+增强：
+
+• @JsonProperty 自动补全
+• JSON → Kotlin data class 生成
+• 反序列化调试
+
+
+---
+
+🧩 五、代码质量 / 重构插件
+
+🔹 1. Detekt Plugin
+
+Kotlin 静态分析工具，提供：
+
+• 风格检查
+• 复杂度分析
+• 代码异味检测
+
+
+非常适合团队项目。
+
+---
+
+🔹 2. Ktlint Plugin
+
+自动格式化 Kotlin 代码，保持团队风格一致。
+
+---
+
+🧩 六、性能分析 / 内存调试插件
+
+🔹 1. IntelliJ Profiler（Ultimate 内置）
+
+支持：
+
+• CPU 分析
+• 内存泄漏检测
+• 分析 Kotlin 协程性能
+
+
+---
+
+🔹 2. YourKit Java Profiler（外部工具）
+
+非常强大的 JVM 分析工具，适合大型 Kotlin 服务。
+
+---
+
+🧩 七、构建工具相关插件（Gradle / Maven）
+
+🔹 1. Gradle Kotlin DSL Plugin
+
+增强：
+
+• build.gradle.kts 自动补全
+• 依赖提示
+• Gradle 脚本调试
+
+
+---
+
+🔹 2. Maven Helper（如果你用 Maven）
+
+查看依赖冲突、树结构。
+
+---
+
+🧩 八、前端 + Kotlin（如果你用 Kotlin + JS 或 Kotlin + Compose）
+
+🔹 1. JetBrains Compose Multiplatform Plugin
+
+用于：
+
+• Compose Desktop
+• Compose Web
+• Compose Android
+
+
+---
+
+🔹 2. Kotlin/JS Debugger（内置）
+
+支持：
+
+• Kotlin → JS 映射
+• Source map 调试
+• JS 断点
+
+
+---
+
+🧭 最推荐的 Kotlin 插件组合（适合 Spring Boot + Kotlin）
+
+插件	用途	
+Kotlin Plugin（内置）	Kotlin 开发基础	
+Coroutines Debugger	调试协程	
+Spring Assistant	Spring Boot 配置增强	
+Spring Boot Tools	运行/调试 Spring 应用	
+Detekt	静态分析	
+Ktlint	代码格式化	
+Gradle Kotlin DSL	build.gradle.kts 自动补全	
+JSON Formatter（浏览器）	调试接口	
+
+
+---
+
+如果你告诉我：
+
+• 你是 Spring Boot + Kotlin 还是 Ktor + Kotlin
+• 是否使用 协程
+• 是否使用 kotlinx.serialization / Jackson
+• 是否使用 Gradle Kotlin DSL
+• 是否需要 性能调试
+
+
+我可以帮你定制一套 最适合你项目的 Kotlin 开发 + 调试插件组合，让你的开发体验更顺畅。
