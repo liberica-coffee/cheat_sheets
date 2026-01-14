@@ -1,0 +1,238 @@
+在 Spring Boot + Kotlin + Thymeleaf 项目中，查看与 Thymeleaf 模板对应的 Kotlin 部分主要通过以下方式：
+
+1. 控制器层（Controller） - 主要对应点
+
+示例控制器：
+
+```kotlin
+@Controller
+@RequestMapping("/users")
+class UserController(
+    private val userService: UserService
+) {
+    
+    // 对应 templates/users/list.html
+    @GetMapping("/list")
+    fun listUsers(model: Model): String {
+        val users = userService.findAll()
+        model.addAttribute("users", users)  // Thymeleaf 中使用 ${users}
+        model.addAttribute("title", "用户列表")  // Thymeleaf 中使用 ${title}
+        return "users/list"  // 模板路径
+    }
+    
+    // 对应 templates/users/detail.html
+    @GetMapping("/detail/{id}")
+    fun userDetail(@PathVariable id: Long, model: Model): String {
+        val user = userService.findById(id)
+        model.addAttribute("user", user)
+        return "users/detail"
+    }
+    
+    // 表单提交对应
+    @PostMapping("/save")
+    fun saveUser(@ModelAttribute userForm: UserForm): String {
+        userService.save(userForm)
+        return "redirect:/users/list"
+    }
+}
+```
+
+2. 表单数据类（Form Classes）
+
+```kotlin
+// 对应 Thymeleaf 表单 th:object="${userForm}"
+data class UserForm(
+    val id: Long? = null,
+    
+    @field:NotBlank(message = "用户名不能为空")
+    val username: String = "",
+    
+    @field:Email(message = "邮箱格式不正确")
+    val email: String = "",
+    
+    val roles: List<String> = emptyList()
+)
+
+// 枚举类在 Thymeleaf 中的使用
+enum class UserStatus {
+    ACTIVE, INACTIVE, PENDING
+}
+```
+
+3. 模型属性与 Thymeleaf 的对应关系
+
+Kotlin 控制器中的属性传递：
+
+```kotlin
+@GetMapping("/profile")
+fun profile(model: Model, session: HttpSession): String {
+    // 简单属性
+    model.addAttribute("pageTitle", "用户资料")
+    model.addAttribute("currentYear", LocalDate.now().year)
+    
+    // 集合类型
+    val menuItems = listOf("首页", "产品", "关于我们", "联系")
+    model.addAttribute("menuItems", menuItems)
+    
+    // 对象
+    val userProfile = UserProfile(
+        name = "张三",
+        avatar = "/images/avatar.jpg",
+        joinDate = LocalDate.of(2023, 1, 15)
+    )
+    model.addAttribute("profile", userProfile)
+    
+    // Map 类型
+    val settings = mapOf(
+        "theme" to "dark",
+        "language" to "zh-CN",
+        "notifications" to true
+    )
+    model.addAttribute("settings", settings)
+    
+    return "user/profile"
+}
+```
+
+4. Thymeleaf 模板中使用 Kotlin 数据
+
+templates/user/profile.html：
+
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${pageTitle}">默认标题</title>
+</head>
+<body>
+    <!-- 使用简单属性 -->
+    <h1 th:text="${pageTitle}"></h1>
+    <p>© <span th:text="${currentYear}">2024</span></p>
+    
+    <!-- 使用对象属性 -->
+    <div th:object="${profile}">
+        <img th:src="*{avatar}" alt="头像">
+        <h2 th:text="*{name}">用户名</h2>
+        <p>加入日期: <span th:text="*{#temporals.format(joinDate, 'yyyy-MM-dd')}"></span></p>
+    </div>
+    
+    <!-- 使用集合 -->
+    <ul>
+        <li th:each="item : ${menuItems}" th:text="${item}"></li>
+    </ul>
+    
+    <!-- 使用 Map -->
+    <div th:if="${settings.notifications}">
+        通知已开启
+    </div>
+</body>
+</html>
+```
+
+5. 实用工具类扩展
+
+创建 Thymeleaf 工具类以在模板中使用：
+
+```kotlin
+@Component
+class ThymeleafUtils {
+    
+    companion object {
+        // 在 Thymeleaf 中使用：${@thymeleafUtils.formatCurrency(amount)}
+        @JvmStatic
+        fun formatCurrency(amount: BigDecimal): String {
+            return NumberFormat.getCurrencyInstance(Locale.CHINA).format(amount)
+        }
+        
+        @JvmStatic
+        fun formatDate(date: LocalDate): String {
+            return date.format(DateTimeFormatter.ofPattern("yyyy年MM月dd日"))
+        }
+    }
+}
+```
+
+6. 配置类对应关系
+
+application.yml 中的 Thymeleaf 配置：
+
+```yaml
+spring:
+  thymeleaf:
+    prefix: classpath:/templates/  # 模板位置
+    suffix: .html                  # 模板后缀
+    mode: HTML                    # 模板模式
+    encoding: UTF-8               # 编码
+    cache: false                  # 开发时禁用缓存
+```
+
+7. 调试和查看对应关系的技巧
+
+添加调试信息：
+
+```kotlin
+@ControllerAdvice
+class GlobalModelAdvice {
+    
+    @ModelAttribute
+    fun addAttributes(model: Model) {
+        // 添加全局属性
+        model.addAttribute("appName", "My Spring Boot App")
+        model.addAttribute("debug", true)  // 开发环境
+    }
+}
+```
+
+在模板中显示所有模型属性（用于调试）：
+
+```html
+<div th:if="${debug}">
+    <h3>模型属性列表：</h3>
+    <ul>
+        <li th:each="attr : ${#ctx.variableNames}">
+            <strong th:text="${attr}"></strong>: 
+            <span th:text="${#ctx.getVariable(attr)}"></span>
+        </li>
+    </ul>
+</div>
+```
+
+8. 常见对应关系总结
+
+Thymeleaf 模板中的表达式 Kotlin 代码中的对应部分
+${user.name} model.addAttribute("user", user)
+*{email} th:object="${userForm}" 中的属性
+${#lists.size(items)} val items: List<Item> = ...
+${#temporals.format(date)} val date: LocalDate = ...
+${@bean.method()} @Component class Bean { fun method() }
+${param.query} @RequestParam query: String
+${session.user} session.setAttribute("user", user)
+
+9. 推荐的开发实践
+
+1. 命名约定保持一致：
+   · 模板文件：templates/模块名/功能名.html
+   · 控制器方法：返回对应的模板路径
+2. 使用片段（Fragments）：
+
+```kotlin
+// 控制器中返回片段
+@GetMapping("/fragment")
+fun getFragment() = "fragments :: header"  // 返回 fragments.html 中的 header 片段
+```
+
+1. 类型安全检查：
+
+```kotlin
+// 使用 Kotlin 的数据类和空安全
+data class ProductView(
+    val id: Long,
+    val name: String,
+    val price: BigDecimal,
+    val description: String?
+)
+
+// 在模板中安全使用：${product.description ?: '暂无描述'}
+```
+
+通过以上方式，你可以清晰地看到 Kotlin 代码与 Thymeleaf 模板之间的对应关系，便于开发和调试。
