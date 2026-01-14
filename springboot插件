@@ -1,0 +1,195 @@
+如果你的项目是 Spring Boot + Thymeleaf 或 Spring Boot + 传统前端（HTML/CSS/JS），那么“前端用插件”通常指的是：
+
+• 浏览器插件（辅助调试）
+• IDE 插件（辅助写前端模板）
+• 构建工具插件（前端构建/热更新）
+• Thymeleaf 扩展插件（增强模板能力）
+
+
+我给你整理一份 真正适合 Spring Boot + 前端开发的插件清单，这些都是工程师日常开发中非常常用、能显著提升效率的。
+
+---
+
+🧩 一、浏览器插件（前端调试最常用）
+
+这些插件对 Spring Boot 前端开发帮助最大，因为你最终渲染的是 HTML。
+
+🔹 1. JSON Formatter
+
+调试接口返回 JSON 时非常好用。
+
+🔹 2. LiveReload（或 Chrome LiveReload Extension）
+
+配合 Spring Boot DevTools，可以做到：
+
+• 修改 HTML/CSS/JS → 浏览器自动刷新
+• 无需手动 F5
+
+
+Spring Boot DevTools 默认支持 LiveReload。
+
+🔹 3. Page Ruler Redux
+
+测量页面元素尺寸、间距，适合 UI 调试。
+
+🔹 4. WhatFont
+
+鼠标移动即可查看字体信息。
+
+🔹 5. CSS Peeper
+
+查看页面颜色、字体、样式，适合 UI 还原。
+
+🔹 6. Wappalyzer
+
+识别网站技术栈（Spring Boot、Thymeleaf、jQuery 等）。
+
+🔹 7. ModHeader
+
+修改请求头，适合：
+
+• 模拟用户身份
+• 调试跨域
+• 切换环境
+
+
+🔹 8. Requestly
+
+可以 Mock 接口、重写 URL、注入 JS/CSS，非常适合前后端联调。
+
+---
+
+🧩 二、IDE 插件（写 Thymeleaf 模板必备）
+
+🔹 1. IntelliJ IDEA — Thymeleaf Plugin（强烈推荐）
+
+增强：
+
+• 语法高亮
+• 自动补全
+• 表达式检查（${}、th:if、th:each）
+• 跳转到变量定义
+
+
+Spring Boot + Thymeleaf 的最佳搭档。
+
+🔹 2. Lombok Plugin（如果你用 Lombok）
+
+前后端联调时查看实体类更方便。
+
+---
+
+🧩 三、Thymeleaf 扩展插件（增强模板能力）
+
+如果你前端是 Thymeleaf 模板，这些插件非常有用。
+
+🔹 1. Thymeleaf Layout Dialect（最常用）
+
+提供：
+
+• 页面继承
+• 模板布局
+• 片段替换
+
+
+适合大型项目的页面结构管理。
+
+🔹 2. Thymeleaf Extras — Spring Security
+
+在模板中直接写权限判断：
+
+<div sec:authorize="hasRole('ADMIN')">Admin Only</div>
+
+
+🔹 3. Thymeleaf Extras — Java 8 Time
+
+更方便地格式化日期。
+
+---
+
+🧩 四、前端构建工具插件（如果你用前端工程化）
+
+如果你的 Spring Boot 项目里包含：
+
+• Webpack
+• Vite
+• npm/yarn
+• Tailwind
+• Sass
+
+
+那么这些插件会很有帮助。
+
+🔹 1. Live Sass Compiler（VS Code）
+
+实时编译 Sass → CSS。
+
+🔹 2. Prettier / ESLint 插件
+
+保持前端代码风格一致。
+
+🔹 3. IntelliJ 的 Node.js 插件
+
+让你在 IDEA 中直接运行 npm 脚本。
+
+---
+
+🧩 五、Spring Boot 开发辅助插件（间接提升前端效率）
+
+🔹 1. Spring Boot DevTools（强烈推荐）
+
+• 模板热更新
+• 静态资源热更新
+• 自动重启
+• 支持 LiveReload
+
+
+前端开发体验会提升一个档次。
+
+🔹 2. Spring Assistant（IntelliJ）
+
+增强 Spring Boot 配置提示。
+
+---
+
+🧭 总结：最值得你安装的插件组合
+
+如果你是 Spring Boot + Thymeleaf：
+
+✔ 浏览器插件
+
+• JSON Formatter
+• LiveReload
+• Page Ruler Redux
+• WhatFont
+• CSS Peeper
+
+
+✔ IDE 插件
+
+• Thymeleaf Plugin
+• Lombok Plugin
+
+
+✔ Thymeleaf 扩展
+
+• Layout Dialect
+• Spring Security Extras
+
+
+✔ Spring Boot
+
+• DevTools（热更新）
+
+
+---
+
+如果你告诉我：
+
+• 你前端是 Thymeleaf 还是 纯 HTML/CSS/JS
+• 是否使用 前端工程化（npm、webpack、vite）
+• 是否有 权限控制
+• 是否需要 热更新
+
+
+我可以帮你定制一套 最适合你项目的前端插件组合，让你的 Spring Boot 前端开发体验更顺畅。
