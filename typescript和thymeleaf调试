@@ -1,0 +1,193 @@
+要根据你的配置（TypeScript + Thymeleaf HTML）在 Chrome 中调试，需要以下步骤：
+
+1. 确保正确配置 Source Maps
+
+首先需要在 webpack.config.js 中配置 source maps：
+
+```javascript
+module.exports = {
+  mode: 'development',
+  devtool: 'eval-source-map', // 或 'source-map'，开发环境推荐
+  // 其他配置...
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/
+      }
+    ]
+  },
+  resolve: {
+    extensions: ['.tsx', '.ts', '.js']
+  }
+};
+```
+
+2. 调试 TypeScript 文件
+
+步骤：
+
+1. 运行 webpack 命令：
+   ```bash
+   webpack --mode=development --watch
+   ```
+2. 在 Chrome 中打开开发者工具：
+   · 按 F12 或右键 → 检查
+   · 进入 Sources 标签页
+3. 找到 TypeScript 源文件：
+   · 在左侧文件树中，你会看到：
+     · webpack:// 文件夹（这是关键！）
+     · 展开 ./src/ 或你的源代码目录
+     · 这里会有原始的 .ts 文件
+4. 设置断点：
+   · 点击行号设置断点
+   · 刷新页面，代码会在断点处暂停
+   · 使用调试控制台查看变量值
+
+示例目录结构：
+
+```
+Sources 面板显示：
+├─ top
+│  ├─ localhost:8080
+│  └─ dist/bundle.js
+├─ webpack://      ← 这里！
+│  ├─ ./
+│  │  ├─ src/
+│  │  │  ├─ app.ts
+│  │  │  ├─ component.ts
+│  │  │  └─ ...
+```
+
+3. 调试 Thymeleaf HTML 模板
+
+Thymeleaf 是服务端模板，需要特殊处理：
+
+方法一：在浏览器中查看生成的 HTML
+
+1. 查看页面源码：
+   · 右键 → 查看页面源代码
+   · 或 Elements 面板中查看最终生成的 HTML
+2. 调试脚本部分：
+   · Thymeleaf 中的数据绑定会在客户端生成 JavaScript
+   · 可以在 Sources 面板中调试这些脚本
+
+方法二：结合 TypeScript 断点
+
+如果 Thymeleaf 渲染的数据传递给 TypeScript：
+
+```html
+<!-- thymeleaf 模板 -->
+<script th:inline="javascript">
+    var userData = [[${userData}]];
+    // 调用 TypeScript 函数
+    myApp.processUserData(userData);
+</script>
+```
+
+```typescript
+// app.ts
+export function processUserData(data: any) {
+    // 在这里设置断点
+    console.log(data);
+    debugger; // 或手动在 Chrome 中设置断点
+}
+```
+
+4. 实用调试技巧
+
+使用 debugger 语句：
+
+```typescript
+// 在 TypeScript 中
+function calculateTotal(price: number, quantity: number): number {
+    debugger; // 浏览器会在这里自动暂停
+    return price * quantity;
+}
+```
+
+Chrome 调试快捷键：
+
+· F8：继续执行
+· F10：单步跳过
+· F11：单步进入
+· Shift + F11：单步跳出
+· Ctrl + \：切换断点
+
+5. 完整调试流程示例
+
+1. 配置 webpack：
+
+```javascript
+// webpack.config.js
+module.exports = {
+  mode: 'development',
+  devtool: 'source-map',
+  entry: './src/index.ts',
+  output: {
+    filename: 'bundle.js',
+    path: __dirname + '/dist'
+  },
+  module: {
+    rules: [
+      {
+        test: /\.ts$/,
+        use: 'ts-loader'
+      }
+    ]
+  }
+};
+```
+
+1. 启动开发服务器（推荐）：
+
+```bash
+npx webpack serve --mode=development --open
+```
+
+1. 在 Chrome 中：
+   · 打开 http://localhost:8080
+   · F12 → Sources → webpack:// → src/
+   · 找到 .ts 文件并设置断点
+   · 触发相关操作，断点生效
+
+6. 常见问题解决
+
+Q: 看不到 .ts 源文件？
+
+A: 检查：
+
+1. Webpack devtool 配置是否正确
+2. TypeScript 编译器是否生成 source maps
+   ```json
+   // tsconfig.json
+   {
+     "compilerOptions": {
+       "sourceMap": true
+     }
+   }
+   ```
+
+Q: 断点不生效？
+
+A: 尝试：
+
+1. 使用 debugger 语句强制中断
+2. 清除浏览器缓存并硬刷新 (Ctrl + Shift + R)
+3. 确保 webpack 正在监听模式运行
+
+Q: Thymeleaf 变量调试？
+
+A: 在 Thymeleaf 中输出到控制台：
+
+```html
+<script th:inline="javascript">
+    console.log([[${userData}]]);
+    // 或设置全局变量便于调试
+    window._debugData = [[${userData}]];
+</script>
+```
+
+这样你就可以在 Chrome 开发者工具的 Console 中直接访问 _debugData。
+
