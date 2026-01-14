@@ -1,0 +1,748 @@
+Thymeleaf 完整用法指南
+
+1. 基础语法和标准表达式
+
+1.1 变量表达式 (Variable Expressions)
+
+```html
+<!-- 简单变量 -->
+<p th:text="${user.name}">用户名</p>
+
+<!-- 选择表达式（在当前对象上下文中） -->
+<div th:object="${user}">
+    <p th:text="*{email}">邮箱</p>
+    <p th:text="*{address.city}">城市</p>
+</div>
+
+<!-- 链接表达式 -->
+<a th:href="@{/user/profile(id=${user.id})}">查看资料</a>
+
+<!-- 消息表达式（国际化） -->
+<p th:text="#{welcome.message}">欢迎信息</p>
+
+<!-- 片段表达式 -->
+<div th:insert="~{fragments/header :: title}">标题片段</div>
+```
+
+1.2 文本和转义
+
+```html
+<!-- 文本显示（自动转义HTML） -->
+<p th:text="'<b>加粗文本</b>'">显示为：&lt;b&gt;加粗文本&lt;/b&gt;</p>
+
+<!-- 非转义文本 -->
+<p th:utext="'<b>加粗文本</b>'">显示为：<b>加粗文本</b></p>
+
+<!-- 文本连接 -->
+<p th:text="'用户：' + ${user.name}"></p>
+<p th:text="|用户：${user.name}|"></p>  <!-- 简化语法 -->
+```
+
+2. 属性设置
+
+2.1 常用属性
+
+```html
+<!-- th:* 属性会替换原始属性 -->
+<input type="text" th:value="${user.name}" value="默认值" />
+<img th:src="@{/images/avatar.png}" src="default.png" />
+<a th:href="@{/user/{id}/profile(id=${user.id})}" href="#">个人资料</a>
+
+<!-- 布尔属性 -->
+<input type="checkbox" th:checked="${user.active}" />
+<option th:selected="${user.selected}">选项</option>
+<textarea th:readonly="${isReadOnly}"></textarea>
+
+<!-- 动态设置任意属性 -->
+<div th:attr="data-id=${user.id}, data-type=${user.type}"></div>
+```
+
+2.2 条件属性
+
+```html
+<!-- 存在时设置，不存在时移除 -->
+<div th:classappend="${user.vip} ? 'vip-user'"></div>
+<input th:required="${user.requiredField}" />
+
+<!-- 设置多个属性 -->
+<img th:attrappend="src=@{/images/}, alt=${user.name+'的头像'}" />
+```
+
+3. 条件判断
+
+3.1 if/unless
+
+```html
+<!-- 如果条件为真显示 -->
+<div th:if="${user != null}">
+    <p th:text="${user.name}"></p>
+</div>
+
+<!-- 如果条件为真不显示 -->
+<div th:unless="${user.age >= 18}">
+    未成年用户
+</div>
+
+<!-- 多条件判断 -->
+<div th:if="${user.active and user.verified}">
+    活跃且已验证用户
+</div>
+<div th:if="${user.type == 'admin' or user.type == 'supervisor'}">
+    管理员用户
+</div>
+```
+
+3.2 switch/case
+
+```html
+<div th:switch="${user.status}">
+    <p th:case="'ACTIVE'">用户活跃</p>
+    <p th:case="'INACTIVE'">用户不活跃</p>
+    <p th:case="'PENDING'">待审核</p>
+    <p th:case="*">未知状态</p> <!-- 默认情况 -->
+</div>
+```
+
+4. 循环迭代
+
+4.1 基本循环
+
+```html
+<!-- 列表循环 -->
+<table>
+    <tr th:each="user : ${users}">
+        <td th:text="${user.id}">ID</td>
+        <td th:text="${user.name}">姓名</td>
+        <td th:text="${user.email}">邮箱</td>
+    </tr>
+</table>
+
+<!-- Map 循环 -->
+<ul th:each="entry : ${userMap}">
+    <li th:text="${entry.key} + ': ' + ${entry.value}"></li>
+</ul>
+
+<!-- 数组循环 -->
+<div th:each="item : ${array}">
+    <span th:text="${item}"></span>
+</div>
+```
+
+4.2 循环状态变量
+
+```html
+<table>
+    <tr th:each="user, stat : ${users}" th:class="${stat.odd}? 'odd' : 'even'">
+        <td th:text="${stat.index}">索引（从0开始）</td>
+        <td th:text="${stat.count}">计数（从1开始）</td>
+        <td th:text="${user.name}">姓名</td>
+        <td th:text="${stat.size}">总数量</td>
+        <td th:text="${stat.current}">当前元素</td>
+        <td th:text="${stat.even}">是否偶数行</td>
+        <td th:text="${stat.odd}">是否奇数行</td>
+        <td th:text="${stat.first}">是否第一个</td>
+        <td th:text="${stat.last}">是否最后一个</td>
+    </tr>
+</table>
+```
+
+4.3 嵌套循环
+
+```html
+<div th:each="department : ${departments}">
+    <h3 th:text="${department.name}"></h3>
+    <ul>
+        <li th:each="employee : ${department.employees}"
+            th:text="${employee.name}"></li>
+    </ul>
+</div>
+```
+
+5. 模板布局和片段
+
+5.1 定义片段
+
+```html
+<!-- fragments/footer.html -->
+<div th:fragment="copyright">
+    <p>© 2024 公司名称</p>
+</div>
+
+<div th:fragment="links(menu)">
+    <ul>
+        <li th:each="item : ${menu}">
+            <a th:href="@{${item.url}}" th:text="${item.name}"></a>
+        </li>
+    </ul>
+</div>
+```
+
+5.2 插入片段
+
+```html
+<!-- 插入整个片段 -->
+<div th:insert="~{fragments/footer :: copyright}"></div>
+
+<!-- 替换当前标签 -->
+<div th:replace="~{fragments/header :: title}">
+    原始内容会被替换
+</div>
+
+<!-- 包含片段（不包含容器标签） -->
+<footer th:include="fragments/footer :: copyright"></footer>
+
+<!-- 传递参数 -->
+<div th:replace="~{fragments/nav :: links(${mainMenu})}"></div>
+```
+
+5.3 布局模板
+
+```html
+<!-- layout.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">默认标题</title>
+</head>
+<body>
+    <header th:replace="~{fragments/header :: header}"></header>
+    
+    <div class="container">
+        <div layout:fragment="content">
+            默认内容
+        </div>
+    </div>
+    
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>
+```
+
+```html
+<!-- 使用布局的页面 -->
+<html layout:decorate="~{layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <title>页面标题</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <h1>页面内容</h1>
+        <p>具体页面内容...</p>
+    </div>
+</body>
+</html>
+```
+
+6. 表单处理
+
+6.1 绑定表单对象
+
+```html
+<form th:action="@{/user/save}" th:object="${userForm}" method="post">
+    <!-- 输入字段 -->
+    <input type="text" th:field="*{name}" 
+           th:classappend="${#fields.hasErrors('name')} ? 'is-invalid' : ''" />
+    <div th:errors="*{name}" class="invalid-feedback"></div>
+    
+    <!-- 下拉选择 -->
+    <select th:field="*{country}">
+        <option value="">选择国家</option>
+        <option th:each="c : ${countries}" 
+                th:value="${c.code}" 
+                th:text="${c.name}"></option>
+    </select>
+    
+    <!-- 单选按钮 -->
+    <input type="radio" th:field="*{gender}" value="M" /> 男
+    <input type="radio" th:field="*{gender}" value="F" /> 女
+    
+    <!-- 复选框 -->
+    <input type="checkbox" th:field="*{agreeTerms}" /> 同意条款
+    <div th:each="interest : ${allInterests}">
+        <input type="checkbox" th:field="*{interests}" 
+               th:value="${interest.id}" />
+        <label th:text="${interest.name}"></label>
+    </div>
+    
+    <!-- 隐藏字段 -->
+    <input type="hidden" th:field="*{id}" />
+    
+    <!-- 文本域 -->
+    <textarea th:field="*{description}"></textarea>
+    
+    <!-- 提交按钮 -->
+    <button type="submit">保存</button>
+</form>
+```
+
+6.2 表单验证
+
+```html
+<!-- 显示全局错误 -->
+<div th:if="${#fields.hasGlobalErrors()}">
+    <p th:each="err : ${#fields.globalErrors()}" 
+       th:text="${err}" class="global-error"></p>
+</div>
+
+<!-- 字段级错误 -->
+<div th:each="field : ${#fields.errors()}">
+    <p th:text="${field}" class="field-error"></p>
+</div>
+
+<!-- 特定字段错误 -->
+<span th:errors="*{email}" class="error"></span>
+<span th:errors="${userForm.email}" class="error"></span>
+```
+
+7. URL 和链接
+
+7.1 各种URL表达式
+
+```html
+<!-- 绝对路径 -->
+<a th:href="@{http://www.example.com}">外部链接</a>
+
+<!-- 相对路径 -->
+<a th:href="@{/user/profile}">用户资料</a>
+<a th:href="@{../parent/page}">上级页面</a>
+
+<!-- 带查询参数 -->
+<a th:href="@{/search(keywords=${keywords}, page=${currentPage})}">搜索</a>
+
+<!-- 路径变量 -->
+<a th:href="@{/user/{id}/profile(id=${userId}, action='view')}">查看资料</a>
+
+<!-- 锚点 -->
+<a th:href="@{#{section1}}">跳转到章节1</a>
+```
+
+7.2 上下文相关URL
+
+```html
+<!-- 静态资源 -->
+<link th:href="@{/css/style.css}" rel="stylesheet">
+<script th:src="@{/js/app.js}"></script>
+<img th:src="@{/images/logo.png}" alt="Logo">
+
+<!-- 带版本号（缓存控制） -->
+<link th:href="@{/css/style.css(v=${version})}" rel="stylesheet">
+```
+
+8. 实用工具和表达式对象
+
+8.1 #strings 字符串工具
+
+```html
+<p th:text="${#strings.toUpperCase(user.name)}">大写</p>
+<p th:text="${#strings.toLowerCase(user.email)}">小写</p>
+<p th:text="${#strings.capitalize(description)}">首字母大写</p>
+<p th:text="${#strings.length(username)}">长度</p>
+<p th:text="${#strings.substring(name, 0, 10)}">子字符串</p>
+<p th:text="${#strings.replace(text, 'old', 'new')}">替换</p>
+<p th:if="${#strings.contains(description, 'important')}">包含</p>
+<p th:if="${#strings.startsWith(path, '/admin')}">开始于</p>
+<p th:if="${#strings.endsWith(filename, '.jpg')}">结束于</p>
+<p th:text="${#strings.trim(address)}">去除空格</p>
+<p th:text="${#strings.concat(str1, str2)}">连接</p>
+<p th:text="${#strings.arrayJoin(names, ', ')}">数组连接</p>
+<p th:text="${#strings.listJoin(users, ' | ')}">列表连接</p>
+<p th:if="${#strings.isEmpty(title)}">是否为空</p>
+<p th:if="${#strings.equals(str1, str2)}">是否相等</p>
+```
+
+8.2 #numbers 数字工具
+
+```html
+<p th:text="${#numbers.formatInteger(amount, 3)}">格式化为整数</p>
+<p th:text="${#numbers.formatDecimal(price, 1, 2)}">格式化为小数</p>
+<p th:text="${#numbers.formatCurrency(amount)}">货币格式</p>
+<p th:text="${#numbers.formatPercent(rate, 2, 2)}">百分比格式</p>
+<p th:text="${#numbers.sequence(1, 10)}">生成序列</p>
+```
+
+8.3 #dates 和 #temporals 日期时间工具
+
+```html
+<!-- 日期格式化 -->
+<p th:text="${#dates.format(user.birthday)}">默认格式</p>
+<p th:text="${#dates.format(user.birthday, 'dd/MM/yyyy')}">自定义格式</p>
+<p th:text="${#dates.format(user.birthday, 'yyyy-MM-dd HH:mm')}">带时间</p>
+
+<!-- Java 8 时间 API -->
+<p th:text="${#temporals.format(now, 'yyyy-MM-dd')}"></p>
+<p th:text="${#temporals.format(localDateTime, 'dd/MM/yyyy HH:mm')}"></p>
+
+<!-- 日期运算 -->
+<p th:text="${#dates.createNow()}">当前时间</p>
+<p th:text="${#dates.createToday()}">今天</p>
+<p th:text="${#dates.dayOfWeek(birthday)}">星期几</p>
+<p th:text="${#dates.day(birthday)}">日</p>
+<p th:text="${#dates.month(birthday)}">月</p>
+<p th:text="${#dates.year(birthday)}">年</p>
+<p th:text="${#dates.hour(time)}">小时</p>
+<p th:text="${#dates.minute(time)}">分钟</p>
+```
+
+8.4 #lists, #sets, #maps 集合工具
+
+```html
+<p th:text="${#lists.size(userList)}">列表大小</p>
+<p th:if="${#lists.contains(list, item)}">是否包含</p>
+<p th:if="${#lists.isEmpty(products)}">是否为空</p>
+<p th:text="${#lists.toArray(stringList)}">转为数组</p>
+
+<p th:text="${#sets.size(userSet)}">集合大小</p>
+<p th:if="${#sets.contains(set, value)}">是否包含</p>
+
+<p th:text="${#maps.size(userMap)}">Map大小</p>
+<p th:if="${#maps.containsKey(map, 'key')}">是否包含键</p>
+<p th:if="${#maps.containsValue(map, 'value')}">是否包含值</p>
+```
+
+8.5 #arrays 数组工具
+
+```html
+<p th:text="${#arrays.length(stringArray)}">数组长度</p>
+<p th:if="${#arrays.contains(array, value)}">是否包含</p>
+<p th:if="${#arrays.isEmpty(array)}">是否为空</p>
+```
+
+8.6 #aggregates 聚合工具
+
+```html
+<p th:text="${#aggregates.sum(prices)}">总和</p>
+<p th:text="${#aggregates.avg(scores)}">平均值</p>
+<p th:text="${#aggregates.min(values)}">最小值</p>
+<p th:text="${#aggregates.max(values)}">最大值</p>
+```
+
+8.7 #ids ID生成工具
+
+```html
+<input id="name" th:id="${#ids.next('name')}" />
+<input id="name" th:id="${#ids.prev('name')}" />
+<input id="name" th:id="${#ids.seq('name')}" />
+```
+
+8.8 #ctx 上下文工具
+
+```html
+<p th:text="${#ctx.locale}">当前区域</p>
+<p th:text="${#ctx.request}">HttpServletRequest</p>
+<p th:text="${#ctx.response}">HttpServletResponse</p>
+<p th:text="${#ctx.session}">HttpSession</p>
+<p th:text="${#ctx.servletContext}">ServletContext</p>
+<p th:text="${#ctx.variableNames}">所有变量名</p>
+```
+
+8.9 #request, #session, #application
+
+```html
+<!-- 请求参数 -->
+<p th:text="${param.keyword}">查询参数</p>
+<p th:text="${#request.getParameter('id')}">请求参数</p>
+<p th:text="${#request.getAttribute('attr')}">请求属性</p>
+<p th:text="${#request.contextPath}">上下文路径</p>
+<p th:text="${#request.requestURI}">请求URI</p>
+
+<!-- 会话属性 -->
+<p th:text="${session.user}">会话中的用户</p>
+<p th:text="${#session.getAttribute('cart')}">会话属性</p>
+
+<!-- 应用上下文 -->
+<p th:text="${#application.getAttribute('appName')}">应用属性</p>
+```
+
+9. 内联表达式
+
+9.1 文本内联
+
+```html
+<!-- 使用 [[...]] 自动转义 -->
+<p>Hello, [[${user.name}]]!</p>
+<span>价格: [[${#numbers.formatCurrency(price)}]]</span>
+
+<!-- 使用 [(...)] 不转义 -->
+<div>HTML: [(${htmlContent})]</div>
+
+<!-- 在JavaScript中使用 -->
+<script th:inline="javascript">
+    var userId = /*[[${user.id}]]*/ 0;
+    var userName = /*[[${user.name}]]*/ 'Guest';
+    var config = {
+        apiUrl: /*[[@{/api}]]*/ '/api',
+        timeout: /*[[${timeout}]]*/ 5000
+    };
+</script>
+
+<!-- 在CSS中使用 -->
+<style th:inline="css">
+    .user-card {
+        background-color: /*[[${themeColor}]]*/ #fff;
+        font-size: /*[[${fontSize}]]*/ 14px;
+    }
+</style>
+```
+
+9.2 禁用内联
+
+```html
+<!-- 在特定元素禁用 -->
+<div th:inline="none">
+    [[这里的内容不会被解析]]
+</div>
+```
+
+10. 布局方言（Layout Dialect）
+
+10.1 布局定义
+
+```html
+<!-- layout.html -->
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">默认标题</title>
+    
+    <!-- 内容头部插入 -->
+    <link rel="stylesheet" href="common.css" />
+    <layout:head>
+        <!-- 页面特定的head内容会插入这里 -->
+    </layout:head>
+</head>
+<body>
+    <header>
+        <layout:fragment name="header">
+            默认头部
+        </layout:fragment>
+    </header>
+    
+    <div class="container">
+        <layout:fragment name="content">
+            默认内容区域
+        </layout:fragment>
+    </div>
+    
+    <footer>
+        <layout:fragment name="footer">
+            默认页脚
+        </layout:fragment>
+    </footer>
+</body>
+</html>
+```
+
+10.2 使用布局
+
+```html
+<!-- page.html -->
+<html layout:decorate="~{layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <title>用户列表</title>
+    
+    <!-- 页面特定的CSS -->
+    <link rel="stylesheet" href="user.css" />
+    
+    <!-- 页面特定的JavaScript -->
+    <script src="user.js"></script>
+</head>
+<body>
+    <!-- 替换header片段 -->
+    <header layout:fragment="header">
+        <h1>用户管理系统</h1>
+        <nav>...</nav>
+    </header>
+    
+    <!-- 替换content片段 -->
+    <div layout:fragment="content">
+        <h2>用户列表</h2>
+        <table>
+            <!-- 用户表格内容 -->
+        </table>
+    </div>
+    
+    <!-- 不替换footer，使用默认 -->
+</body>
+</html>
+```
+
+11. 国际化（i18n）
+
+11.1 消息文件
+
+```properties
+# messages.properties
+welcome.message=欢迎来到我们的网站
+user.greeting=你好, {0}!
+page.title=首页
+button.submit=提交
+```
+
+```properties
+# messages_zh_CN.properties
+welcome.message=欢迎来到我们的网站
+user.greeting=你好, {0}!
+page.title=首页
+button.submit=提交
+```
+
+11.2 使用国际化
+
+```html
+<!-- 使用消息 -->
+<h1 th:text="#{welcome.message}">Welcome</h1>
+<p th:text="#{user.greeting(${user.name})}">Hello!</p>
+<button th:text="#{button.submit}">Submit</button>
+
+<!-- 带参数的动态消息 -->
+<p th:text="#{orders.count(${#lists.size(orders)})}">订单数量</p>
+
+<!-- 备用文本 -->
+<span th:text="#{message.key}">默认文本</span>
+
+<!-- 在属性中使用 -->
+<input type="submit" th:value="#{button.save}" value="Save" />
+<a th:href="@{/home}" th:text="#{menu.home}">Home</a>
+```
+
+12. 高级特性
+
+12.1 预处理
+
+```html
+<!-- 预处理表达式 -->
+<p th:text="${__#{key}__}">预处理消息</p>
+<p th:text="${__${'key'}__}">动态键名</p>
+```
+
+12.2 无操作标记
+
+```html
+<!-- 如果条件不满足，保持原样 -->
+<p th:text="${user.name}" th:if="${user != null}">默认名称</p>
+
+<!-- 使用 _ 作为无操作 -->
+<p th:text="${user.name} ?: _">用户不存在</p>
+```
+
+12.3 数据属性前缀
+
+```html
+<!-- 使用 data-th-* 属性 -->
+<div data-th-text="${message}">默认消息</div>
+<a data-th-href="@{/path}">链接</a>
+
+<!-- 在模板原型中保持可读性 -->
+<img src="placeholder.jpg" data-th-src="@{/images/{id}(id=${product.id})}" />
+```
+
+13. 与JavaScript集成
+
+13.1 数据属性传递
+
+```html
+<!-- 传递数据到JavaScript -->
+<div id="user-info" 
+     th:data-user-id="${user.id}"
+     th:data-user-name="${user.name}"
+     th:data-user-roles="${#strings.arrayJoin(user.roles, ',')}">
+</div>
+
+<script>
+    var userInfo = document.getElementById('user-info');
+    var userId = userInfo.dataset.userId;
+    var userName = userInfo.dataset.userName;
+    var roles = userInfo.dataset.userRoles.split(',');
+</script>
+```
+
+13.2 JSON序列化
+
+```html
+<script th:inline="javascript">
+    var userData = /*[[${#strings.escapeJava(userJson)}]]*/ {};
+    var parsedUser = JSON.parse(userData);
+    
+    var config = {
+        apiBase: /*[[@{/api}]]*/ '',
+        features: /*[[${features}]]*/ [],
+        settings: /*[[${settings}]]*/ {}
+    };
+</script>
+```
+
+14. 性能优化
+
+14.1 缓存控制
+
+```html
+<!-- 开发环境禁用缓存 -->
+<meta th:if="${@environment.getProperty('spring.thymeleaf.cache') == 'false'}" 
+      http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta th:if="${@environment.getProperty('spring.thymeleaf.cache') == 'false'}" 
+      http-equiv="Pragma" content="no-cache" />
+<meta th:if="${@environment.getProperty('spring.thymeleaf.cache') == 'false'}" 
+      http-equiv="Expires" content="0" />
+```
+
+14.2 片段缓存
+
+```html
+<!-- 缓存频繁使用的片段 -->
+<div th:replace="~{fragments/menu :: main}" 
+     th:if="${!#ctx.request.getParameter('nocache')}">
+</div>
+```
+
+15. 调试技巧
+
+15.1 调试信息
+
+```html
+<!-- 显示所有变量 -->
+<div th:if="${debug}">
+    <h3>模板变量:</h3>
+    <ul>
+        <li th:each="var : ${#ctx.variableNames}">
+            <strong th:text="${var}"></strong>: 
+            <code th:text="${#ctx.getVariable(var)}"></code>
+        </li>
+    </ul>
+    
+    <h3>请求信息:</h3>
+    <p>URI: <span th:text="${#request.requestURI}"></span></p>
+    <p>Query: <span th:text="${#request.queryString}"></span></p>
+    <p>Method: <span th:text="${#request.method}"></span></p>
+</div>
+```
+
+15.2 模板注释
+
+```html
+<!--/* 服务器端注释，不会发送到客户端 */-->
+<!--/* 可以包含表达式 */-->
+<!--/* [[${user.name}]] */-->
+
+<!-- 条件注释 -->
+<!--/* 只在开发环境显示 */-->
+<div th:if="${@environment.acceptsProfiles('dev')}">
+    调试信息...
+</div>
+```
+
+16. 最佳实践总结
+
+1. 保持模板简洁：将复杂逻辑移至控制器或服务层
+2. 使用片段：重用公共组件
+3. 适当的转义：使用 th:text 而不是 th:utext 除非必要
+4. 利用工具对象：使用 #strings, #dates 等工具函数
+5. 合理使用布局：保持页面结构一致性
+6. 性能考虑：适当使用缓存，避免过度复杂的表达式
+7. 安全性：对用户输入进行适当的清理和验证
+
+这个完整的 Thymeleaf 使用指南涵盖了从基础到高级的所有主要功能，可以帮助你在 Spring Boot 项目中高效地使用 Thymeleaf 模板引擎。
+
+
