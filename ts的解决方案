@@ -1,0 +1,837 @@
+将 JavaScript 转换为 TypeScript
+
+以下是之前 JavaScript 解决方案的 TypeScript 版本，包含完整的类型定义和更好的代码组织：
+
+方案1：TypeScript 版本（事件委托模式）
+
+HTML 模板部分
+
+```html
+<div th:each="item : ${items}" th:id="'item-' + ${item.id}" class="item-container">
+    <h3 th:text="${item.name}"></h3>
+    
+    <!-- 使用 data-* 属性存储类型安全的标识 -->
+    <button class="detail-btn" 
+            th:attr="data-item-id=${item.id}"
+            data-item-type="Product">
+        显示详情
+    </button>
+    
+    <!-- 详情容器 -->
+    <div th:id="'details-' + ${item.id}" 
+         class="details-container" 
+         style="display: none;">
+        <!-- 内容将通过AJAX加载 -->
+    </div>
+</div>
+
+<!-- 引入编译后的TypeScript文件 -->
+<script src="/js/item-details.js"></script>
+```
+
+TypeScript 文件 (item-details.ts)
+
+```typescript
+// 类型定义
+interface Item {
+    id: number;
+    name: string;
+    price?: number;
+    description?: string;
+    category?: string;
+}
+
+interface ItemDetails {
+    id: number;
+    fullDescription: string;
+    specifications: Record<string, string>;
+    createdAt: string;
+    updatedAt: string;
+}
+
+interface ItemElement extends HTMLElement {
+    dataset: {
+        itemId: string;
+        itemType?: string;
+    };
+}
+
+// 全局状态管理
+class ItemDetailManager {
+    private static instance: ItemDetailManager;
+    private activeItemId: number | null = null;
+    private isLoading: boolean = false;
+    
+    private constructor() {}
+    
+    static getInstance(): ItemDetailManager {
+        if (!ItemDetailManager.instance) {
+            ItemDetailManager.instance = new ItemDetailManager();
+        }
+        return ItemDetailManager.instance;
+    }
+    
+    public getActiveItemId(): number | null {
+        return this.activeItemId;
+    }
+    
+    public setActiveItemId(id: number | null): void {
+        this.activeItemId = id;
+    }
+    
+    public getIsLoading(): boolean {
+        return this.isLoading;
+    }
+    
+    public setIsLoading(loading: boolean): void {
+        this.isLoading = loading;
+    }
+}
+
+// 详情容器管理器
+class DetailContainerManager {
+    private containers: Map<number, HTMLElement> = new Map();
+    
+    registerContainer(itemId: number, element: HTMLElement): void {
+        this.containers.set(itemId, element);
+    }
+    
+    getContainer(itemId: number): HTMLElement | undefined {
+        return this.containers.get(itemId);
+    }
+    
+    getAllContainers(): HTMLElement[] {
+        return Array.from(this.containers.values());
+    }
+    
+    hideAllContainers(): void {
+        this.getAllContainers().forEach(container => {
+            container.style.display = 'none';
+        });
+    }
+    
+    showContainer(itemId: number): void {
+        const container = this.getContainer(itemId);
+        if (container) {
+            container.style.display = 'block';
+        }
+    }
+    
+    isContainerVisible(itemId: number): boolean {
+        const container = this.getContainer(itemId);
+        return container ? container.style.display === 'block' : false;
+    }
+}
+
+// 详情加载器
+class DetailLoader {
+    private baseUrl: string;
+    
+    constructor(baseUrl: string = '/api/items') {
+        this.baseUrl = baseUrl;
+    }
+    
+    async loadDetails(itemId: number): Promise<ItemDetails> {
+        try {
+            const response = await fetch(`${this.baseUrl}/${itemId}/details`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data: ItemDetails = await response.json();
+            return data;
+        } catch (error) {
+            console.error(`Failed to load details for item ${itemId}:`, error);
+            throw error;
+        }
+    }
+    
+    async loadDetailsHtml(itemId: number): Promise<string> {
+        try {
+            const response = await fetch(`${this.baseUrl}/${itemId}/details/html`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            return await response.text();
+        } catch (error) {
+            console.error(`Failed to load HTML details for item ${itemId}:`, error);
+            return `<div class="error">加载详情失败</div>`;
+        }
+    }
+}
+
+// 渲染器
+class DetailRenderer {
+    static renderDetails(container: HTMLElement, details: ItemDetails): void {
+        const html = this.generateDetailsHtml(details);
+        container.innerHTML = html;
+    }
+    
+    static generateDetailsHtml(details: ItemDetails): string {
+        return `
+            <div class="detail-content">
+                <h4>详细信息</h4>
+                <div class="detail-section">
+                    <p><strong>完整描述：</strong>${details.fullDescription}</p>
+                </div>
+                <div class="detail-section">
+                    <h5>规格参数</h5>
+                    <ul>
+                        ${Object.entries(details.specifications)
+                            .map(([key, value]) => `<li><strong>${key}:</strong> ${value}</li>`)
+                            .join('')}
+                    </ul>
+                </div>
+                <div class="detail-meta">
+                    <small>创建时间: ${details.createdAt}</small>
+                    <small>更新时间: ${details.updatedAt}</small>
+                </div>
+            </div>
+        `;
+    }
+    
+    static renderLoading(container: HTMLElement): void {
+        container.innerHTML = `
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>加载中...</p>
+            </div>
+        `;
+    }
+    
+    static renderError(container: HTMLElement, error: Error): void {
+        container.innerHTML = `
+            <div class="error-message">
+                <p>加载失败: ${error.message}</p>
+                <button class="retry-btn">重试</button>
+            </div>
+        `;
+    }
+}
+
+// 主控制器
+class ItemDetailsController {
+    private manager: ItemDetailManager;
+    private containerManager: DetailContainerManager;
+    private loader: DetailLoader;
+    
+    constructor() {
+        this.manager = ItemDetailManager.getInstance();
+        this.containerManager = new DetailContainerManager();
+        this.loader = new DetailLoader();
+        this.initialize();
+    }
+    
+    private initialize(): void {
+        this.setupEventListeners();
+        this.registerContainers();
+    }
+    
+    private setupEventListeners(): void {
+        // 使用事件委托处理按钮点击
+        document.addEventListener('click', (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            
+            // 处理详情按钮点击
+            if (target.classList.contains('detail-btn')) {
+                const button = target as ItemElement;
+                const itemId = parseInt(button.dataset.itemId, 10);
+                this.handleDetailButtonClick(itemId);
+            }
+            
+            // 处理重试按钮点击
+            if (target.classList.contains('retry-btn')) {
+                const button = target.closest('.error-message')?.previousElementSibling as ItemElement;
+                if (button) {
+                    const itemId = parseInt(button.dataset.itemId, 10);
+                    this.handleDetailButtonClick(itemId, true);
+                }
+            }
+        });
+    }
+    
+    private registerContainers(): void {
+        document.querySelectorAll<HTMLElement>('.details-container').forEach(container => {
+            const idMatch = container.id.match(/details-(\d+)/);
+            if (idMatch) {
+                const itemId = parseInt(idMatch[1], 10);
+                this.containerManager.registerContainer(itemId, container);
+            }
+        });
+    }
+    
+    private async handleDetailButtonClick(itemId: number, forceReload: boolean = false): Promise<void> {
+        if (this.manager.getIsLoading()) {
+            console.log('Another request is in progress');
+            return;
+        }
+        
+        const container = this.containerManager.getContainer(itemId);
+        if (!container) {
+            console.error(`Container for item ${itemId} not found`);
+            return;
+        }
+        
+        // 如果已经显示，则隐藏
+        if (this.containerManager.isContainerVisible(itemId)) {
+            container.style.display = 'none';
+            this.manager.setActiveItemId(null);
+            return;
+        }
+        
+        // 隐藏所有其他容器
+        this.containerManager.hideAllContainers();
+        
+        // 显示当前容器
+        this.containerManager.showContainer(itemId);
+        this.manager.setActiveItemId(itemId);
+        
+        // 如果容器为空或强制重新加载，则加载内容
+        if (forceReload || container.innerHTML.trim() === '') {
+            await this.loadAndRenderDetails(itemId, container);
+        }
+    }
+    
+    private async loadAndRenderDetails(itemId: number, container: HTMLElement): Promise<void> {
+        this.manager.setIsLoading(true);
+        DetailRenderer.renderLoading(container);
+        
+        try {
+            const details = await this.loader.loadDetails(itemId);
+            DetailRenderer.renderDetails(container, details);
+        } catch (error) {
+            DetailRenderer.renderError(container, error as Error);
+        } finally {
+            this.manager.setIsLoading(false);
+        }
+    }
+    
+    // 公共方法
+    public toggleItemDetails(itemId: number): void {
+        this.handleDetailButtonClick(itemId);
+    }
+    
+    public refreshItemDetails(itemId: number): void {
+        const container = this.containerManager.getContainer(itemId);
+        if (container) {
+            this.loadAndRenderDetails(itemId, container);
+        }
+    }
+    
+    public getActiveItemId(): number | null {
+        return this.manager.getActiveItemId();
+    }
+}
+
+// 初始化
+document.addEventListener('DOMContentLoaded', () => {
+    // 检查是否在 Thymeleaf 渲染的页面中
+    const hasItemContainers = document.querySelector('.item-container') !== null;
+    
+    if (hasItemContainers) {
+        const controller = new ItemDetailsController();
+        
+        // 将控制器暴露给全局作用域，以便其他脚本使用
+        (window as any).itemDetailsController = controller;
+        
+        console.log('ItemDetailsController initialized');
+    }
+});
+
+// 导出类型和类（如果使用模块）
+export type { Item, ItemDetails };
+export { ItemDetailsController, DetailLoader, DetailRenderer };
+```
+
+对应的 CSS (item-details.css)
+
+```css
+.details-container {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 16px;
+    margin-top: 8px;
+    background-color: #f9f9f9;
+}
+
+.detail-content {
+    animation: fadeIn 0.3s ease-in;
+}
+
+.detail-section {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.detail-section:last-child {
+    border-bottom: none;
+}
+
+.detail-section h5 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.detail-section ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.detail-section li {
+    padding: 4px 0;
+    border-bottom: 1px dotted #ddd;
+}
+
+.detail-section li:last-child {
+    border-bottom: none;
+}
+
+.detail-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #666;
+    margin-top: 16px;
+}
+
+.loading-spinner {
+    text-align: center;
+    padding: 20px;
+}
+
+.spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 10px;
+}
+
+.error-message {
+    color: #e74c3c;
+    text-align: center;
+    padding: 20px;
+}
+
+.retry-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.retry-btn:hover {
+    background-color: #2980b9;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+```
+
+方案2：TypeScript 版本（组件化架构）
+
+使用类组件的方式
+
+```typescript
+// 定义接口
+interface ComponentProps {
+    itemId: number;
+    itemName: string;
+    apiEndpoint: string;
+    onToggle?: (itemId: number, isOpen: boolean) => void;
+}
+
+// 基础组件类
+abstract class BaseComponent {
+    protected element: HTMLElement;
+    
+    constructor(element: HTMLElement) {
+        this.element = element;
+    }
+    
+    abstract render(): void;
+    abstract destroy(): void;
+}
+
+// 详情组件
+class ItemDetailComponent extends BaseComponent {
+    private props: ComponentProps;
+    private isOpen: boolean = false;
+    private detailsLoaded: boolean = false;
+    
+    constructor(element: HTMLElement, props: ComponentProps) {
+        super(element);
+        this.props = props;
+        this.initialize();
+    }
+    
+    private initialize(): void {
+        this.render();
+        this.bindEvents();
+    }
+    
+    render(): void {
+        this.element.innerHTML = `
+            <div class="item-detail-component" data-item-id="${this.props.itemId}">
+                <div class="header">
+                    <h3>${this.props.itemName}</h3>
+                    <button class="toggle-btn">
+                        ${this.isOpen ? '收起' : '展开'}详情
+                    </button>
+                </div>
+                <div class="content" style="display: ${this.isOpen ? 'block' : 'none'}">
+                    ${this.getContent()}
+                </div>
+            </div>
+        `;
+    }
+    
+    private getContent(): string {
+        if (!this.detailsLoaded) {
+            return '<div class="loading-placeholder">点击加载详情...</div>';
+        }
+        return '<div class="detail-content">已加载的详情内容</div>';
+    }
+    
+    private bindEvents(): void {
+        const button = this.element.querySelector('.toggle-btn');
+        if (button) {
+            button.addEventListener('click', () => this.toggle());
+        }
+    }
+    
+    async toggle(): Promise<void> {
+        this.isOpen = !this.isOpen;
+        
+        if (this.isOpen && !this.detailsLoaded) {
+            await this.loadDetails();
+        }
+        
+        this.render();
+        this.props.onToggle?.(this.props.itemId, this.isOpen);
+    }
+    
+    private async loadDetails(): Promise<void> {
+        try {
+            // 显示加载状态
+            const contentDiv = this.element.querySelector('.content');
+            if (contentDiv) {
+                contentDiv.innerHTML = '<div class="loading">加载中...</div>';
+            }
+            
+            const response = await fetch(`${this.props.apiEndpoint}/${this.props.itemId}`);
+            const data = await response.json();
+            
+            // 更新内容
+            this.detailsLoaded = true;
+            // 这里可以处理数据并更新显示
+        } catch (error) {
+            console.error('Failed to load details:', error);
+        }
+    }
+    
+    destroy(): void {
+        // 清理事件监听器
+        const button = this.element.querySelector('.toggle-btn');
+        if (button) {
+            button.replaceWith(button.cloneNode(true));
+        }
+    }
+}
+
+// 组件管理器
+class ComponentManager {
+    private components: Map<number, ItemDetailComponent> = new Map();
+    
+    registerComponent(itemId: number, component: ItemDetailComponent): void {
+        this.components.set(itemId, component);
+    }
+    
+    getComponent(itemId: number): ItemDetailComponent | undefined {
+        return this.components.get(itemId);
+    }
+    
+    destroyAll(): void {
+        this.components.forEach(component => component.destroy());
+        this.components.clear();
+    }
+}
+
+// 工厂函数
+export function createItemDetailComponent(
+    containerId: string, 
+    props: ComponentProps
+): ItemDetailComponent | null {
+    const container = document.getElementById(containerId);
+    if (!container) {
+        console.error(`Container ${containerId} not found`);
+        return null;
+    }
+    
+    const component = new ItemDetailComponent(container, props);
+    const manager = new ComponentManager();
+    manager.registerComponent(props.itemId, component);
+    
+    return component;
+}
+```
+
+方案3：使用 TypeScript 装饰器（高级用法）
+
+```typescript
+// 自定义装饰器
+function autoBind(_: any, _2: string, descriptor: PropertyDescriptor) {
+    const originalMethod = descriptor.value;
+    const adjustedDescriptor: PropertyDescriptor = {
+        configurable: true,
+        get() {
+            return originalMethod.bind(this);
+        }
+    };
+    return adjustedDescriptor;
+}
+
+function throttle(delay: number) {
+    return function(_: any, propertyKey: string, descriptor: PropertyDescriptor) {
+        const originalMethod = descriptor.value;
+        let lastCall = 0;
+        
+        descriptor.value = function(...args: any[]) {
+            const now = Date.now();
+            if (now - lastCall >= delay) {
+                lastCall = now;
+                return originalMethod.apply(this, args);
+            }
+        };
+        
+        return descriptor;
+    };
+}
+
+// 使用装饰器的控制器
+class EnhancedItemController {
+    private static readonly DEBOUNCE_DELAY = 300;
+    private items: Map<number, boolean> = new Map();
+    
+    constructor() {
+        this.initialize();
+    }
+    
+    private initialize(): void {
+        this.setupEventListeners();
+    }
+    
+    @autoBind
+    private setupEventListeners(): void {
+        document.addEventListener('click', this.handleDocumentClick);
+        document.addEventListener('keydown', this.handleKeyDown);
+    }
+    
+    @throttle(EnhancedItemController.DEBOUNCE_DELAY)
+    private handleDocumentClick(event: MouseEvent): void {
+        const target = event.target as HTMLElement;
+        
+        if (target.classList.contains('item-toggle')) {
+            const itemId = this.extractItemId(target);
+            if (itemId) {
+                this.toggleItem(itemId);
+            }
+        }
+    }
+    
+    private handleKeyDown(event: KeyboardEvent): void {
+        if (event.key === 'Escape') {
+            this.closeAllItems();
+        }
+    }
+    
+    private extractItemId(element: HTMLElement): number | null {
+        const itemElement = element.closest('[data-item-id]') as HTMLElement;
+        if (itemElement && itemElement.dataset.itemId) {
+            return parseInt(itemElement.dataset.itemId, 10);
+        }
+        return null;
+    }
+    
+    async toggleItem(itemId: number): Promise<void> {
+        const isOpen = this.items.get(itemId) || false;
+        const newState = !isOpen;
+        
+        this.items.set(itemId, newState);
+        await this.updateItemView(itemId, newState);
+        
+        // 关闭其他项目（可选）
+        if (newState) {
+            this.closeOtherItems(itemId);
+        }
+    }
+    
+    private async updateItemView(itemId: number, isOpen: boolean): Promise<void> {
+        const container = document.getElementById(`details-${itemId}`);
+        if (!container) return;
+        
+        container.style.display = isOpen ? 'block' : 'none';
+        
+        if (isOpen && container.innerHTML.trim() === '') {
+            await this.loadItemDetails(itemId, container);
+        }
+    }
+    
+    private async loadItemDetails(itemId: number, container: HTMLElement): Promise<void> {
+        try {
+            const loader = new DetailLoader();
+            const details = await loader.loadDetails(itemId);
+            const renderer = new DetailRenderer();
+            renderer.renderDetails(container, details);
+        } catch (error) {
+            console.error(`Failed to load details for item ${itemId}:`, error);
+        }
+    }
+    
+    private closeOtherItems(currentItemId: number): void {
+        this.items.forEach((isOpen, itemId) => {
+            if (itemId !== currentItemId && isOpen) {
+                this.items.set(itemId, false);
+                this.updateItemView(itemId, false);
+            }
+        });
+    }
+    
+    private closeAllItems(): void {
+        this.items.forEach((isOpen, itemId) => {
+            if (isOpen) {
+                this.items.set(itemId, false);
+                this.updateItemView(itemId, false);
+            }
+        });
+    }
+    
+    public getOpenItems(): number[] {
+        return Array.from(this.items.entries())
+            .filter(([_, isOpen]) => isOpen)
+            .map(([itemId]) => itemId);
+    }
+}
+```
+
+配置 TypeScript 编译
+
+tsconfig.json
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "outDir": "./public/js",
+    "rootDir": "./src/ts",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": false,
+    "sourceMap": true,
+    "declaration": true,
+    "declarationDir": "./public/js/types",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["src/ts/**/*"],
+  "exclude": ["node_modules", "**/*.test.ts"]
+}
+```
+
+Gradle 构建配置
+
+```gradle
+// build.gradle.kts
+plugins {
+    kotlin("jvm") version "1.8.0"
+    id("org.springframework.boot") version "3.1.0"
+    id("io.spring.dependency-management") version "1.1.0"
+}
+
+// 添加 TypeScript 编译任务
+tasks.register<Exec>("compileTypeScript") {
+    group = "build"
+    description = "Compile TypeScript files"
+    commandLine("npx", "tsc")
+    dependsOn("processResources")
+    
+    inputs.dir("src/ts")
+    outputs.dir("public/js")
+}
+
+tasks.named("compileJava") {
+    dependsOn("compileTypeScript")
+}
+```
+
+使用示例
+
+HTML 中初始化
+
+```html
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        // 初始化 TypeScript 控制器
+        const controller = new ItemDetailsController();
+        
+        // 或者使用组件方式
+        const items = /*[[${items}]]*/ [];
+        items.forEach(function(item) {
+            createItemDetailComponent(`item-${item.id}`, {
+                itemId: item.id,
+                itemName: item.name,
+                apiEndpoint: '/api/items'
+            });
+        });
+    });
+    /*]]>*/
+</script>
+```
+
+优势和注意事项
+
+优势：
+
+1. 类型安全：编译时类型检查，减少运行时错误
+2. 更好的 IDE 支持：自动补全、代码导航、重构
+3. 可维护性：清晰的接口定义和类型约束
+4. 现代特性：支持 ES6+ 特性，如 async/await、装饰器等
+5. 更好的错误信息：编译时错误提示更明确
+
+注意事项：
+
+1. 需要编译步骤：TypeScript 需要编译为 JavaScript
+2. 配置复杂度：需要配置 tsconfig.json
+3. 学习曲线：需要了解 TypeScript 特性
+4. 构建集成：需要与现有构建工具集成
+
+建议从简单的 TypeScript 实现开始，逐步引入更高级的特性。对于复杂的项目，TypeScript 带来的类型安全和开发体验提升是非常值得的。
