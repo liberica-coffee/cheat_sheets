@@ -1,0 +1,560 @@
+TypeScript 命令备忘录
+
+📦 安装与初始化
+
+全局安装
+
+```bash
+# 全局安装 TypeScript
+npm install -g typescript
+
+# 检查版本
+tsc --version
+tsserver --version
+
+# 全局安装 ts-node（直接运行 TS）
+npm install -g ts-node
+npm install -g ts-node-dev  # 热重载
+```
+
+项目初始化
+
+```bash
+# 初始化项目（生成 package.json）
+npm init -y
+
+# 安装 TypeScript 为开发依赖
+npm install --save-dev typescript
+
+# 生成 tsconfig.json
+npx tsc --init
+
+# 安装类型定义
+npm install --save-dev @types/node
+npm install --save-dev @types/react  # React 项目
+npm install --save-dev @types/jest   # Jest 测试
+
+# 安装 ts-node 用于开发
+npm install --save-dev ts-node
+npm install --save-dev ts-node-dev
+```
+
+⚙️ 编译命令
+
+基本编译
+
+```bash
+# 编译单个文件
+tsc app.ts
+
+# 编译并运行
+tsc app.ts && node app.js
+
+# 使用 ts-node 直接运行
+ts-node app.ts
+
+# 带监视模式
+tsc app.ts --watch
+tsc app.ts -w
+
+# 编译整个项目
+tsc
+
+# 监视模式编译整个项目
+tsc --watch
+tsc -w
+
+# 增量编译（更快）
+tsc --incremental
+tsc --watch --incremental
+```
+
+编译选项
+
+```bash
+# 指定输出目录
+tsc --outDir ./dist
+
+# 指定目标 JavaScript 版本
+tsc --target ES2020
+tsc --target ES2015
+tsc --target ES6
+
+# 指定模块系统
+tsc --module CommonJS
+tsc --module ES2020
+tsc --module ES6
+
+# 生成源映射（source maps）
+tsc --sourceMap
+
+# 生成声明文件（.d.ts）
+tsc --declaration
+tsc --declaration --declarationMap
+
+# 严格模式
+tsc --strict
+tsc --noImplicitAny --strictNullChecks --strictFunctionTypes
+
+# 忽略错误编译
+tsc --noEmitOnError false
+
+# 只编译不输出文件
+tsc --noEmit
+
+# 显示详细编译信息
+tsc --listFiles
+tsc --diagnostics
+tsc --extendedDiagnostics
+
+# 清理输出
+tsc --clean
+```
+
+🎯 配置文件相关
+
+tsconfig.json 常用配置
+
+```json
+{
+  "compilerOptions": {
+    // 基础选项
+    "target": "ES2020",
+    "module": "CommonJS",
+    "lib": ["ES2020", "DOM"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    
+    // 严格模式选项
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    
+    // 模块解析
+    "moduleResolution": "node",
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"],
+      "@components/*": ["src/components/*"]
+    },
+    
+    // 输出控制
+    "sourceMap": true,
+    "declaration": true,
+    
+    // 实验性功能
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    
+    // 其他
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+}
+```
+
+使用不同配置文件
+
+```bash
+# 指定配置文件
+tsc --project tsconfig.json
+tsc -p tsconfig.json
+
+# 使用自定义配置文件
+tsc -p tsconfig.prod.json
+tsc -p tsconfig.dev.json
+
+# 扩展配置文件
+tsc -p tsconfig.base.json
+```
+
+🚀 开发与调试
+
+开发服务器
+
+```bash
+# 使用 ts-node-dev（热重载）
+ts-node-dev --respawn --transpile-only src/index.ts
+
+# 带调试
+ts-node-dev --inspect --respawn src/index.ts
+
+# 使用 nodemon + ts-node
+nodemon --exec ts-node src/index.ts
+
+# 使用 webpack-dev-server
+npm run dev  # 通常配置在 package.json 中
+```
+
+调试命令
+
+```bash
+# Node.js 调试
+node --inspect dist/app.js
+
+# 用 ts-node 调试
+ts-node --inspect src/app.ts
+
+# Chrome 开发者工具调试
+# 打开 chrome://inspect
+
+# VS Code 调试配置（.vscode/launch.json）
+{
+  "type": "node",
+  "request": "launch",
+  "name": "Debug TypeScript",
+  "runtimeArgs": ["-r", "ts-node/register"],
+  "args": ["${workspaceFolder}/src/index.ts"]
+}
+```
+
+🧪 测试相关
+
+测试框架
+
+```bash
+# Jest
+npm install --save-dev jest ts-jest @types/jest
+npx ts-jest config:init
+
+# 运行 Jest 测试
+npm test
+jest
+jest --watch
+jest --coverage
+
+# Mocha + Chai
+npm install --save-dev mocha chai @types/mocha @types/chai ts-node
+mocha --require ts-node/register 'test/**/*.test.ts'
+
+# 运行特定测试文件
+jest src/components/Button.test.ts
+mocha test/user.test.ts
+```
+
+📁 项目结构命令
+
+创建项目结构
+
+```bash
+# 创建标准 TypeScript 项目结构
+mkdir my-ts-project
+cd my-ts-project
+npm init -y
+npm install typescript --save-dev
+npx tsc --init
+
+# 创建目录结构
+mkdir src
+mkdir dist
+mkdir test
+mkdir @types  # 自定义类型定义
+
+# 创建入口文件
+echo 'console.log("Hello TypeScript!");' > src/index.ts
+
+# 创建测试文件
+echo 'import { expect } from "chai";' > test/index.test.ts
+```
+
+🔧 构建与打包
+
+Webpack 配置
+
+```bash
+# 安装 webpack
+npm install --save-dev webpack webpack-cli
+npm install --save-dev ts-loader
+
+# 运行 webpack
+npx webpack --config webpack.config.js
+
+# 开发模式
+npx webpack --mode development
+
+# 生产模式
+npx webpack --mode production
+```
+
+Rollup 配置
+
+```bash
+# 安装 rollup
+npm install --save-dev rollup @rollup/plugin-typescript
+
+# 运行 rollup
+npx rollup -c
+```
+
+构建脚本示例（package.json）
+
+```json
+{
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "build:prod": "tsc --project tsconfig.prod.json",
+    "start": "node dist/index.js",
+    "start:dev": "ts-node-dev --respawn src/index.ts",
+    "dev": "nodemon --exec ts-node src/index.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/**/*.ts"
+  }
+}
+```
+
+🧹 代码质量工具
+
+ESLint
+
+```bash
+# 安装
+npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
+
+# 初始化配置
+npx eslint --init
+
+# 运行检查
+npx eslint src/**/*.ts
+
+# 自动修复
+npx eslint src/**/*.ts --fix
+```
+
+Prettier
+
+```bash
+# 安装
+npm install --save-dev prettier
+
+# 格式化代码
+npx prettier --write src/**/*.ts
+
+# 检查格式
+npx prettier --check src/**/*.ts
+```
+
+类型检查
+
+```bash
+# 只做类型检查，不编译
+tsc --noEmit
+
+# 类型检查并显示所有错误
+tsc --noEmit --strict
+
+# 检查特定文件
+tsc --noEmit src/utils/*.ts
+```
+
+📚 类型管理
+
+类型声明
+
+```bash
+# 安装 DefinitelyTyped 类型包
+npm install --save-dev @types/lodash
+npm install --save-dev @types/express
+npm install --save-dev @types/react @types/react-dom
+
+# 查看已安装的类型包
+npm list @types
+
+# 创建自定义类型声明文件
+# 在 src/types 或 @types 目录下创建 .d.ts 文件
+```
+
+三斜线指令
+
+```typescript
+/// <reference types="node" />
+/// <reference path="./my-types.d.ts" />
+/// <reference lib="es2015" />
+```
+
+🔍 诊断与性能
+
+性能分析
+
+```bash
+# 显示编译时间
+tsc --diagnostics
+
+# 详细诊断信息
+tsc --extendedDiagnostics
+
+# 列出所有编译文件
+tsc --listFiles
+
+# 显示使用的编译器选项
+tsc --showConfig
+```
+
+缓存管理
+
+```bash
+# 启用构建缓存（TypeScript 3.4+）
+tsc --incremental
+
+# 指定缓存目录
+tsc --incremental --tsBuildInfoFile .tsbuildinfo
+
+# 清理缓存
+tsc --clean
+rm -rf .tsbuildinfo
+rm -rf dist
+```
+
+🐳 Docker 集成
+
+Dockerfile 示例
+
+```dockerfile
+# 多阶段构建
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+COPY tsconfig.json ./
+RUN npm ci
+COPY src ./src
+RUN npm run build
+
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY --from=builder /app/dist ./dist
+EXPOSE 3000
+CMD ["node", "dist/index.js"]
+```
+
+🚨 常见问题解决
+
+错误处理
+
+```bash
+# 无法找到模块
+# 解决方案：安装类型定义或创建声明文件
+
+# 类型错误
+tsc --noEmit  # 查看所有类型错误
+
+# 编译缓慢
+tsc --incremental  # 启用增量编译
+tsc --watch --preserveWatchOutput  # 保持监视输出
+
+# 内存不足
+# 增加内存限制
+export NODE_OPTIONS="--max-old-space-size=4096"
+```
+
+缓存清理
+
+```bash
+# 清理所有缓存
+rm -rf node_modules/.cache
+rm -rf .tsbuildinfo
+rm -rf dist
+
+# 重新安装
+npm cache clean --force
+npm install
+```
+
+📝 常用快捷键和技巧
+
+VS Code 快捷键
+
+```
+Ctrl + Shift + B: 构建任务
+F12 / Ctrl + Click: 转到定义
+Alt + F12: 查看定义
+F2: 重命名符号
+Ctrl + . : 快速修复
+Shift + F12: 查看引用
+Ctrl + Shift + O: 转到符号
+Ctrl + T: 转到工作区符号
+```
+
+命令行技巧
+
+```bash
+# 编译并运行
+tsc && node dist/app.js
+
+# 管道操作
+tsc --noEmit 2>&1 | grep "error TS"
+
+# 批量操作
+find src -name "*.ts" -exec tsc {} \;
+
+# 性能测试
+time tsc
+```
+
+🎯 TypeScript 版本特性快速参考
+
+版本检查
+
+```bash
+# 查看当前版本特性
+tsc --version
+# 或查看 node_modules/typescript/package.json
+
+# 设置特定版本
+npm install typescript@4.9 --save-dev
+```
+
+各版本重要特性
+
+```
+TypeScript 5.0: 装饰器、const 类型参数
+TypeScript 4.9: satisfies 运算符、访问器自动补全
+TypeScript 4.8: 改进的交叉类型、模板字符串推断
+TypeScript 4.7: Node.js ES Modules 支持
+TypeScript 4.5: Awaited 类型、导入名称修饰符
+TypeScript 4.0: 可变元组类型、标记元组元素
+```
+
+📊 性能优化命令
+
+```bash
+# 使用项目引用（大型项目）
+tsc --build
+
+# 并行编译
+tsc --build --verbose
+
+# 跳过类型检查
+tsc --noEmit --skipLibCheck
+
+# 跳过声明文件检查
+tsc --noEmit --skipDefaultLibCheck
+
+# 使用编译器 API 进行自定义构建
+# 创建 build.ts 使用 typescript 模块
+```
+
+🔄 迁移命令
+
+从 JavaScript 迁移
+
+```bash
+# 重命名文件
+find . -name "*.js" -exec sh -c 'mv "$1" "${1%.js}.ts"' _ {} \;
+
+# 初始化 TypeScript 配置
+npx tsc --init --allowJs --checkJs
+
+# 逐步迁移
+tsc --allowJs --checkJs --noEmit
+```
+
+---
+
+这个备忘录涵盖了 TypeScript 开发中的常用命令和技巧，可以根据需要随时查阅。建议将常用的命令添加到项目的 package.json scripts 中，以提高开发效率。
